@@ -1,14 +1,8 @@
-import { createStore } from 'vuex'
+import {createStore} from "vuex";
+import {settlementsModule} from "@/store/settlementsModule";
 
 export default createStore({
-    state: {
-    },
-    getters: {
-    },
-    mutations: {
-    },
-    actions: {
-    },
     modules: {
-    }
+        settle: settlementsModule
+    },
 })
