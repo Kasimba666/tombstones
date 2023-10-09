@@ -1,13 +1,15 @@
 <template>
   <div>
-
+    Детали: {{ !(details == null) ? details : 'не выбрано'}}
   </div>
 </template>
 
 <script>
 export default {
   components: {},
-  props: [],
+  props: {
+    details: Array
+  },
   data() {
     return {}
   },
