@@ -19,7 +19,7 @@
             <div class="obj-cell" :class="{right: (i === titles.length-1)}"
                  v-for="(title, i) of titles" :key="i"
             >
-              {{ arrToString(row[title.col_name]) }}
+              {{ arrToString(row[title.attr_name]) }}
             </div>
           </template>
 
@@ -36,7 +36,7 @@ export default {
     rows: Array,
     titles: Array,
   },
-  // emits: ['clickRow'],
+  emits: ['clickRow'],
   data() {
     return {
       currentRow: null,

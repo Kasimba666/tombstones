@@ -1,13 +1,16 @@
 <template>
   <div>
-
+    {{ filters }}
   </div>
 </template>
 
 <script>
 export default {
   components: {},
-  props: [],
+  props: {
+    filters: Array
+  },
+  // emits: [''],
   data() {
     return {}
   },

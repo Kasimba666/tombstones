@@ -1,6 +1,9 @@
 <template>
   <div>
-    Детали: {{ !(details == null) ? details : 'не выбрано'}}
+    <div
+        v-for="(detail, d) of details" :key="d">
+      <b v-if="!!detail.title_name">{{ detail.title_name }}: </b> {{detail.value}}
+    </div>
   </div>
 </template>
 
