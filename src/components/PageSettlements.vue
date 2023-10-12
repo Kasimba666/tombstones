@@ -3,20 +3,22 @@
 
     <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
       <div class="objs-filter-and-list">
-        <div class="objs-filter">
-        </div>
+        <objs-filters
+            :filters="filtersSettlements"
+        >
+        </objs-filters>
         <obj-details
             :details="detailsSettlement"
         >
         </obj-details>
         <objs-list
             :rows="rowsSettlements"
-            :titles="titlesTableSettlements"
+            :titles="colsSettlements"
             @clickRow="setCurrentObjFromRow"
         >
         </objs-list>
-      </div>
     </div>
+  </div>
 
   </div>
 </template>
@@ -25,26 +27,23 @@
 import {mapState, mapActions, mapGetters, mapMutations} from 'vuex';
 import ObjsList from "@/components/ObjsList";
 import ObjDetails from "@/components/ObjDetails";
+import ObjsFilters from "@/components/ObjsFilters";
+
 
 export default {
-  components: {ObjsList, ObjDetails},
+  components: {ObjsList, ObjDetails, ObjsFilters},
   props: [],
   data() {
-    return {
-      // currSettlement: null,
-    }
+    return {}
   },
   computed: {
     ...mapState({
-      // settlements: state => state.settle.objs,
-      // schema: "settle/schema",
-      currSettlement: state => state.settle.current_obj,
     }),
     ...mapGetters({
-      titlesTableSettlements: 'settle/titlesTable',
+      colsSettlements: 'settle/cols',
       rowsSettlements: 'settle/rows',
       detailsSettlement: 'settle/details',
-
+      filtersSettlements: 'settle/filters',
     })
   },
   methods: {

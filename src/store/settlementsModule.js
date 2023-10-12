@@ -2,51 +2,56 @@ import SettlementsJsonFile from '@/data/bolgar_settlements.json';
 // import {createItemFromDescriptor} from "@babel/core/lib/config/item";
 export const settlementsModule = {
     state: () => ({
-        raw_objs: [],
         crs: null,
         current_obj: null,
         objs: [],
+        filtersValues: [],
         scheme: [
-            {attr_name: 'id', title: 'id', inTable: 1, inDetails: 0, filterType: 'none', order: 10},
-            {attr_name: 'name', title: 'Наименование', inTable: 1, inDetails: 1, filterType: 'find', order: 20},
-            {attr_name: 'region', title: 'Регион', inTable: 1, inDetails: 1, filterType: 'dropdown', order: 30,
-                valueAliases: [{value: 'PV', alias: 'Предволжье'}, {value: 'PK', alias: 'Предкамье'}, {value: 'ZK', alias: 'Закамье'}]},
-            {attr_name: 'dating', title: 'Датировка', inTable: 1, inDetails: 1, filterType: 'dropdown', order: 40},
-            {attr_name: 'location', title: 'Местоположение', inTable: 0, inDetails: 1, filterType: 'none', order: 100},
-            {attr_name: 'area', title: 'Площадь', inTable: 1, inDetails: 1, filterType: 'range', order: 80},
-            {attr_name: 'typesettlement', title: 'Тип', inTable: 1, inDetails: 1, filterType: 'dropdown', order: 110},
-            {attr_name: 'form', title: 'Форма', inTable: 0, inDetails: 1, filterType: 'none', order: 90},
-            {attr_name: 'literature', title: 'Литература', inTable: 0, inDetails: 1, filterType: 'none', order: 60},
-            {attr_name: 'description', title: 'Описание', inTable: 0, inDetails: 0, filterType: 'none', order: 50},
-            {attr_name: 'type', title: 'Тип', inTable: 0, inDetails: 0, filterType: 'none', order: 70},
-            {attr_name: 'sketchfab', title: '3d', inTable: 0, inDetails: 1, filterType: 'none', order: 120},
-            {attr_name: 'coordinates', title: 'Координаты', inTable: 0, inDetails: 1, filterType: 'none', order: 130},
+            {attrName: 'id', title: 'id', inTable: 1, inDetails: 0, filterType: 'none', order: 10},
+            {attrName: 'name', title: 'Наименование', inTable: 1, inDetails: 1, filterType: 'find', order: 20},
+            {
+                attrName: 'region', title: 'Регион', inTable: 1, inDetails: 1, filterType: 'dropdown', order: 30,
+                valueAliases: [{value: 'PV', alias: 'Предволжье'}, {value: 'PK', alias: 'Предкамье'}, {
+                    value: 'ZK',
+                    alias: 'Закамье'
+                }]
+            },
+            {attrName: 'dating', title: 'Датировка', inTable: 1, inDetails: 1, filterType: 'dropdown', order: 40},
+            {attrName: 'location', title: 'Местоположение', inTable: 0, inDetails: 1, filterType: 'none', order: 100},
+            {attrName: 'area', title: 'Площадь', inTable: 1, inDetails: 1, filterType: 'range', order: 80},
+            {attrName: 'typesettlement', title: 'Тип', inTable: 1, inDetails: 1, filterType: 'dropdown', order: 110},
+            {attrName: 'form', title: 'Форма', inTable: 0, inDetails: 1, filterType: 'none', order: 90},
+            {attrName: 'literature', title: 'Литература', inTable: 0, inDetails: 1, filterType: 'none', order: 60},
+            {attrName: 'description', title: 'Описание', inTable: 0, inDetails: 0, filterType: 'none', order: 50},
+            {attrName: 'type', title: 'Тип', inTable: 0, inDetails: 0, filterType: 'none', order: 70},
+            {attrName: 'sketchfab', title: '3d', inTable: 0, inDetails: 1, filterType: 'none', order: 120},
+            {attrName: 'coordinates', title: 'Координаты', inTable: 0, inDetails: 1, filterType: 'none', order: 130},
         ],
 
     }),
     getters:
         {
-            titlesTable(state) {
-                let titles = [];
+            cols(state) {
+                let cols = [];
                 state.scheme.forEach((item) => {
                     if (item.inTable === 1) {
-                        titles.push({attr_name: item.attr_name, title_name: item.title})
+                        cols.push({attrName: item.attrName, titleName: item.title})
                     }
                 });
-                return titles;
+                return cols;
             },
 
             rows(state) {
-                let titles = [];
+                let cols = [];
                 state.scheme.forEach((item) => {
                     if (item.inTable === 1) {
-                        titles.push(item.attr_name)
+                        cols.push(item.attrName)
                     }
                 });
                 let rows = [];
                 state.objs.forEach((item) => {
                     let row = new Object();
-                    titles.forEach((key) => {
+                    cols.forEach((key) => {
                         row[key] = item[key]
                     });
                     rows.push(row);
@@ -61,9 +66,9 @@ export const settlementsModule = {
                     state.scheme.forEach((item) => {
                         if (item.inDetails === 1) {
                             titlesAndValues.push({
-                                attr_name: item.attr_name,
-                                title_name: item.title,
-                                value: state.current_obj[item.attr_name]
+                                attrName: item.attrName,
+                                titleName: item.title,
+                                value: state.current_obj[item.attrName]
                             });
                         }
                     });
@@ -74,25 +79,22 @@ export const settlementsModule = {
             filters(state) {
                 let filters = [];
                 state.scheme.forEach((attr) => {
-                   if (attr.filterType === 'dropdown') {
-                       let lV = [];
-                       state.objs.forEach(obj => {
-                               if ((obj[attr.attr_name] != null) && (obj[attr.attr_name] != '') && !lV.includes(obj[attr.attr_name])) {
-                               lV.push(obj[attr.attr_name]);
-                           }
-                       }
-                       )
-                       filters.push({attr_name: attr.attr_name, title_name: attr.title, listValue: lV.sort()});
-                   }
+                    if (attr.filterType === 'dropdown') {
+                        let listValues = [];
+                        state.objs.forEach(obj => {
+                                if ((obj[attr.attrName] != null) && (obj[attr.attrName] != '') && !listValues.includes(obj[attr.attrName])) {
+                                    listValues.push(obj[attr.attrName]);
+                                }
+                            }
+                        )
+                        filters.push({attrName: attr.attrName, title: attr.title, listValues: listValues.sort()});
+                    }
                 });
                 return filters;
             }
 
         },
     mutations: {
-        setRAWSettlements(state, raw_settlements) {
-            state.raw_objs = raw_settlements;
-        },
         setSettlements(state, settlements) {
             state.objs = settlements.map((item) => {
                 return {
@@ -116,16 +118,26 @@ export const settlementsModule = {
             state.crs = crs;
         },
         setTitleTableOn(state, name) {
-            state.scheme.forEach ((item) => {if (item['attr_name'] === name ) {item['inTable'] === 1}});
+            state.scheme.forEach((item) => {
+                if (item['attrName'] === name) {
+                    item['inTable'] === 1
+                }
+            });
         },
         setTitleTableOff(state, name) {
-            state.scheme.forEach ((item) => {if (item['attr_name'] === name ) {item['inTable'] === 0}});
+            state.scheme.forEach((item) => {
+                if (item['attrName'] === name) {
+                    item['inTable'] === 0
+                }
+            });
 
         },
         setCurrentObjFromRow(state, row) {
             //найти объект в общем списке, который соответствует присланной строке
-            state.current_obj = [...state.objs].filter(item=>{
-                if ((item.name === row.name) && (item.id === row.id)) {return item}
+            state.current_obj = [...state.objs].filter(item => {
+                if ((item.name === row.name) && (item.id === row.id)) {
+                    return item
+                }
             })[0];
 
         }
@@ -134,7 +146,6 @@ export const settlementsModule = {
         loadSettlements({commit}) {
             try {
                 const response = SettlementsJsonFile;
-                commit('setRAWSettlements', response);
                 commit('setCRS', response.crs);
                 commit('setSettlements', response.features);
             } catch (e) {

@@ -2,7 +2,7 @@
   <div>
     <div
         v-for="(detail, d) of details" :key="d">
-      <b v-if="!!detail.title_name">{{ detail.title_name }}: </b> {{detail.value}}
+      <b v-if="!!detail.titleName">{{ detail.titleName }}: </b> {{detail.value}}
     </div>
   </div>
 </template>

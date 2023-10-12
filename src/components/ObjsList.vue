@@ -4,7 +4,7 @@
       <div class="obj-row obj-title">
         <div class="obj-cell title" :class="{right: (i === titles.length-1)}"
              v-for="(title, i) of titles" :key="i">
-          {{ title.title_name }}
+          {{ title.titleName }}
         </div>
       </div>
       <template v-if="!!rows && rows.length>0">
@@ -19,7 +19,7 @@
             <div class="obj-cell" :class="{right: (i === titles.length-1)}"
                  v-for="(title, i) of titles" :key="i"
             >
-              {{ arrToString(row[title.attr_name]) }}
+              {{ arrToString(row[title.attrName]) }}
             </div>
           </template>
 
