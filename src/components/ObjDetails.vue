@@ -1,9 +1,15 @@
 <template>
-  <div>
+  <div class="details">
     <div
         v-for="(detail, d) of details" :key="d">
-      <b v-if="!!detail.titleName">{{ detail.titleName }}: </b> {{detail.value}}
+      <div v-if="!!detail.value">
+        <b> {{ detail.titleName }}: </b> {{ detail.value }}
+      </div>
     </div>
+    <button class="btn-close"
+            @click="$emit('clickCloseDetails')"
+    >
+    </button>
   </div>
 </template>
 
@@ -13,6 +19,7 @@ export default {
   props: {
     details: Array
   },
+  emits: ['clickCloseDetails'],
   data() {
     return {}
   },
@@ -24,5 +31,12 @@ export default {
 </script>
 
 <style lang="scss">
-
+.details {
+  position: relative;
+}
+.btn-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
 </style>

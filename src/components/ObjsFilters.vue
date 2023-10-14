@@ -1,16 +1,28 @@
 <template>
-  <div v-if="!!this.myFiltersValues[0]?.attrName">
+  <div v-if="!!this.newFiltersValues[0]?.attrName">
     <div class="my-select-block"
          v-for="(filter, f) of filters" :key="f">
       <label for="filter_`${f}`">{{ filter.title }} : </label>
-      <select id="filter_`${f}`" v-model="myFiltersValues[f].value">
-        <option v-for="(value, i) of filter.listValues" :value="value" :key="i">
-          {{ value }}
-        </option>
-      </select>
+      <template v-if="filter.type === 'input'">
+        <input id="filter_`${f}`" v-model="newFiltersValues[f].value"
+               @change="$emit('changeFiltersValues', newFiltersValues)"
+               @click="$emit('changeFiltersValues', newFiltersValues)"
+        >
+      </template>
+      <template v-if="filter.type === 'dropdown'">
+        <select id="filter_`${f}`" v-model="newFiltersValues[f].value"
+                @change="$emit('changeFiltersValues', newFiltersValues)">
+          <option v-bind:value="null">
+            (все)
+          </option>
+          <option v-for="(value, i) of filter.listValues" v-bind:value="value" :key="i">
+            {{ value }}
+          </option>
+        </select>
+      </template>
     </div>
     <div>
-      {{ myFiltersValues }}
+<!--      {{ newFiltersValues }}-->
     </div>
   </div>
 </template>
@@ -21,17 +33,17 @@ export default {
   props: {
     filters: Array
   },
-  // emits: [''],
+  emits: ['changeFiltersValues'],
   data() {
     return {
-      myFiltersValues: [],
+      newFiltersValues: [],
     }
   },
   computed: {},
   methods: {
     initFiltersValues() {
-      this.myFiltersValues = this.filters.map((item) => {
-        return {attrName: item.attrName, value: null}
+      this.newFiltersValues = this.filters.map((item) => {
+        return {attrName: item.attrName, type: item.type, value: null}
       });
     },
   },

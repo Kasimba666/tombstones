@@ -1,25 +1,33 @@
 <template>
   <div class="container-fluid">
-
-    <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-      <div class="objs-filter-and-list">
-        <objs-filters
-            :filters="filtersSettlements"
-        >
-        </objs-filters>
-        <obj-details
-            :details="detailsSettlement"
-        >
-        </obj-details>
-        <objs-list
-            :rows="rowsSettlements"
-            :titles="colsSettlements"
-            @clickRow="setCurrentObjFromRow"
-        >
-        </objs-list>
+    <div class="row">
+      <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+        <div class="objs-filters-list-details">
+          <obj-details class="objs-filters-list filters-list details" :style="{display: visibleDetails ?'block':'none'}"
+                       :details="detailsSettlement"
+                       @clickCloseDetails="closeDetails"
+          >
+          </obj-details>
+          <div class="objs-filters-list filters-list" :style="{display: visibleFiltersAndList ?'block':'none'}">
+            <objs-filters
+                :filters="filtersSettlements"
+                @changeFiltersValues="setFiltersValues"
+            >
+            </objs-filters>
+            <objs-list
+                :rows="rowsSettlements"
+                :titles="colsSettlements"
+                @clickRow="clickOnRow"
+            >
+            </objs-list>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+        <div class="objs-map">
+        </div>
+      </div>
     </div>
-  </div>
-
   </div>
 </template>
 
@@ -34,11 +42,13 @@ export default {
   components: {ObjsList, ObjDetails, ObjsFilters},
   props: [],
   data() {
-    return {}
+    return {
+      visibleFiltersAndList: true,
+      visibleDetails: false,
+    }
   },
   computed: {
-    ...mapState({
-    }),
+    ...mapState({}),
     ...mapGetters({
       colsSettlements: 'settle/cols',
       rowsSettlements: 'settle/rows',
@@ -51,12 +61,20 @@ export default {
       setTitleTableOn: 'settle/setTitleTableOn',
       setTitleTableOff: 'settle/setTitleTableOff',
       setCurrentObjFromRow: 'settle/setCurrentObjFromRow',
+      setFiltersValues: 'settle/setFiltersValues',
     }),
     ...mapActions({
       loadSettlements: 'settle/loadSettlements',
-
-
     }),
+    clickOnRow(v) {
+      this.setCurrentObjFromRow(v);
+      this.visibleDetails = true
+      this.visibleFiltersAndList = false;
+    },
+    closeDetails() {
+      this.visibleDetails = false;
+      this.visibleFiltersAndList = true;
+    },
   },
   mounted() {
     try {
@@ -69,21 +87,35 @@ export default {
 </script>
 
 <style lang="scss">
-.objs-filter-and-list {
+.objs-filters-list-details {
+  border: 1px solid black;
+  .filters-list {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    background-color: hsl(0, 0%, 90%);
+
+
+    .filters {
+      background-color: hsl(0, 0%, 70%);
+      padding: 5px;
+  }
+    .list {
+      background-color: hsl(0, 0%, 70%);
+      padding: 5px;
+    }
+  }
+  .details {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.objs-map {
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-flow: column;
-  background-color: hsl(0, 0%, 90%);
+  height: 600px;
+  background-color: lightgrey;
 }
 
-.objs-filter {
-  background-color: hsl(0, 0%, 70%);
-  padding: 5px;
-}
-
-.objs-list {
-  background-color: hsl(0, 0%, 70%);
-  padding: 5px;
-}
 </style>

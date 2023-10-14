@@ -8,10 +8,10 @@ export const settlementsModule = {
         filtersValues: [],
         scheme: [
             {attrName: 'id', title: 'id', inTable: 1, inDetails: 0, filterType: 'none', order: 10},
-            {attrName: 'name', title: 'Наименование', inTable: 1, inDetails: 1, filterType: 'find', order: 20},
+            {attrName: 'name', title: 'Наименование', inTable: 1, inDetails: 1, filterType: 'input', order: 20},
             {
                 attrName: 'region', title: 'Регион', inTable: 1, inDetails: 1, filterType: 'dropdown', order: 30,
-                valueAliases: [{value: 'PV', alias: 'Предволжье'}, {value: 'PK', alias: 'Предкамье'}, {
+                altValues: [{value: 'PV', alias: 'Предволжье'}, {value: 'PK', alias: 'Предкамье'}, {
                     value: 'ZK',
                     alias: 'Закамье'
                 }]
@@ -50,11 +50,29 @@ export const settlementsModule = {
                 });
                 let rows = [];
                 state.objs.forEach((item) => {
-                    let row = new Object();
-                    cols.forEach((key) => {
-                        row[key] = item[key]
+                    //проверить item на соответствие значениям фильтров
+                    let filterPass = true;
+                    state.filtersValues.forEach((fV) => {
+                        // if (!(
+                        //     (((fV.value === item[fV.attrName]) || (fV.value == null)))
+                        // ))
+                        if (!(
+                            ((fV.type === 'dropdown') && ((fV.value === item[fV.attrName]) || (fV.value == null))) ||
+                            ((fV.type === 'input') && (fV.value == null) || (fV.value === '')
+                                || ((item[fV.attrName] != null ? item[fV.attrName] : '').toLowerCase().includes((fV.value != null ? fV.value : '').toLowerCase(), 0)))
+                        ))
+                        {
+                            filterPass = false;
+                        }
                     });
-                    rows.push(row);
+                    //сформировать строку
+                    if (filterPass) {
+                        let row = new Object();
+                        cols.forEach((key) => {
+                            row[key] = item[key]
+                        });
+                        rows.push(row);
+                    }
                 })
                 return rows
             },
@@ -79,6 +97,14 @@ export const settlementsModule = {
             filters(state) {
                 let filters = [];
                 state.scheme.forEach((attr) => {
+                    if (attr.filterType === 'input') {
+                        filters.push({
+                            attrName: attr.attrName,
+                            title: attr.title,
+                            type: 'input',
+
+                        });
+                    }
                     if (attr.filterType === 'dropdown') {
                         let listValues = [];
                         state.objs.forEach(obj => {
@@ -87,11 +113,17 @@ export const settlementsModule = {
                                 }
                             }
                         )
-                        filters.push({attrName: attr.attrName, title: attr.title, listValues: listValues.sort()});
+                        filters.push({
+                            attrName: attr.attrName,
+                            title: attr.title,
+                            type: 'dropdown',
+                            listValues: listValues.sort()
+                        });
                     }
                 });
                 return filters;
-            }
+            },
+
 
         },
     mutations: {
@@ -140,7 +172,10 @@ export const settlementsModule = {
                 }
             })[0];
 
-        }
+        },
+        setFiltersValues(state, newFiltersValues) {
+            state.filtersValues = newFiltersValues;
+        },
     },
     actions: {
         loadSettlements({commit}) {
