@@ -25,6 +25,9 @@
       </div>
       <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
         <div class="objs-map">
+          <objs-map
+              :collectionObjs="mapSettlements">
+          </objs-map>
         </div>
       </div>
     </div>
@@ -36,10 +39,11 @@ import {mapState, mapActions, mapGetters, mapMutations} from 'vuex';
 import ObjsList from "@/components/ObjsList";
 import ObjDetails from "@/components/ObjDetails";
 import ObjsFilters from "@/components/ObjsFilters";
+import ObjsMap from "@/components/ObjsMap"
 
 
 export default {
-  components: {ObjsList, ObjDetails, ObjsFilters},
+  components: {ObjsList, ObjDetails, ObjsFilters, ObjsMap},
   props: [],
   data() {
     return {
@@ -54,6 +58,7 @@ export default {
       rowsSettlements: 'settle/rows',
       detailsSettlement: 'settle/details',
       filtersSettlements: 'settle/filters',
+      mapSettlements: 'settle/mapObjs',
     })
   },
   methods: {
@@ -89,6 +94,7 @@ export default {
 <style lang="scss">
 .objs-filters-list-details {
   border: 1px solid black;
+
   .filters-list {
     width: 100%;
     height: 100%;
@@ -100,12 +106,14 @@ export default {
     .filters {
       background-color: hsl(0, 0%, 70%);
       padding: 5px;
-  }
+    }
+
     .list {
       background-color: hsl(0, 0%, 70%);
       padding: 5px;
     }
   }
+
   .details {
     width: 100%;
     height: auto;
@@ -114,7 +122,7 @@ export default {
 
 .objs-map {
   width: 100%;
-  height: 600px;
+  height: 80vh;
   background-color: lightgrey;
 }
 

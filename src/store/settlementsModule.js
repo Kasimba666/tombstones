@@ -2,6 +2,7 @@ import SettlementsJsonFile from '@/data/bolgar_settlements.json';
 // import {createItemFromDescriptor} from "@babel/core/lib/config/item";
 export const settlementsModule = {
     state: () => ({
+        raw_objs: null,
         crs: null,
         current_obj: null,
         objs: [],
@@ -60,8 +61,7 @@ export const settlementsModule = {
                             ((fV.type === 'dropdown') && ((fV.value === item[fV.attrName]) || (fV.value == null))) ||
                             ((fV.type === 'input') && (fV.value == null) || (fV.value === '')
                                 || ((item[fV.attrName] != null ? item[fV.attrName] : '').toLowerCase().includes((fV.value != null ? fV.value : '').toLowerCase(), 0)))
-                        ))
-                        {
+                        )) {
                             filterPass = false;
                         }
                     });
@@ -123,7 +123,9 @@ export const settlementsModule = {
                 });
                 return filters;
             },
-
+            mapObjs(state) {
+                return state.raw_objs;
+            },
 
         },
     mutations: {
@@ -146,6 +148,11 @@ export const settlementsModule = {
                 }
             });
         },
+
+        setRawObjs (state, rawObjs) {
+            state.raw_objs = rawObjs;
+        },
+
         setCRS(state, crs) {
             state.crs = crs;
         },
@@ -181,6 +188,7 @@ export const settlementsModule = {
         loadSettlements({commit}) {
             try {
                 const response = SettlementsJsonFile;
+                commit('setRawObjs', response);
                 commit('setCRS', response.crs);
                 commit('setSettlements', response.features);
             } catch (e) {
