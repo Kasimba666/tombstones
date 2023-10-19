@@ -1,6 +1,6 @@
 <template>
-  <!--  <div>{{ collectionObjs }}</div>-->
-  <div>{{ example }}</div>
+<!--    <div>{{ collectionObjs }}</div>-->
+<!--  <div>{{ example }}</div>-->
   <div id="map" class="map"></div>
 </template>
 
@@ -88,6 +88,7 @@ export default {
 
       const vectorSource = new VectorSource({
         features: new GeoJSON().readFeatures(this.example),
+        // features: new GeoJSON().readFeatures(this.collectionObjs),
       });
 
       const vectorLayer = new VectorLayer({
