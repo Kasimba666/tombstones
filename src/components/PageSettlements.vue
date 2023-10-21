@@ -63,8 +63,8 @@ export default {
   },
   methods: {
     ...mapMutations({
-      setTitleTableOn: 'settle/setTitleTableOn',
-      setTitleTableOff: 'settle/setTitleTableOff',
+      // setTitleTableOn: 'settle/setTitleTableOn',
+      // setTitleTableOff: 'settle/setTitleTableOff',
       setCurrentObjFromRow: 'settle/setCurrentObjFromRow',
       setFiltersValues: 'settle/setFiltersValues',
     }),
