@@ -12,7 +12,7 @@ import ObjsMap from "./ObjsMap";
 
 export default {
   components: {ObjsList, ObjDetails, ObjsFilters, ObjsMap},
-  props: {geoJson: Array, scheme: Array},
+  props: {geoJson: Object, scheme: Array},
   emits: ['filters'],
   data() {
     return {
@@ -64,9 +64,28 @@ export default {
         return tempDetails
       }
     },
+    objMap() {
+      let tempFeatures = this.geoJson.features.map((feature) => {
+        let tempFeature = {};
+        let tempProperties = {};
+        this.scheme.forEach((item) => {
+          if (item.inMap === 1) {
+            tempFeature[item.attrName] = feature[item.attrName];
+          }
 
-
-
+        });
+        return {
+          type: feature.type,
+          properties: tempProperties,
+        }
+      });
+      return {
+        type: this.geoJson.type,
+        name: this.geoJson.name,
+        crs: this.geoJson.crs,
+        features: tempFeatures,
+      }
+    },
   },
   methods: {},
   mounted() {
