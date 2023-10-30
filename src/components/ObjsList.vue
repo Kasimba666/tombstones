@@ -42,7 +42,15 @@ export default {
       currentRow: null,
     }
   },
-  computed: {},
+  computed: {
+    sumSize() {
+      if (!!this.titles) {
+       return this.titles.reduce((sum, item)=>{
+          return sum + item.colSize
+        }, 0)
+      }
+    },
+  },
   methods: {
     arrToString(arr) {
       let r = '';

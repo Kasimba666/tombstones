@@ -1,5 +1,5 @@
 <template>
-    <div  v-if="!!this.newFiltersValues[0]?.attrName">
+    <div  v-if="!!filtersValues[0]">
         <div
              v-for="(filter, f) of filters" :key="f" class="filter-block">
             <div class="label-placeholder">
@@ -7,14 +7,14 @@
             </div>
             <div class="filter-placeholder">
                 <template v-if="filter.type === 'input'">
-                    <input id="filter_`${f}`" v-model="newFiltersValues[f].value" style="width: 200px"
-                           @change="$emit('changeFiltersValues', newFiltersValues)"
-                           @click="$emit('changeFiltersValues', newFiltersValues)"
+                    <input id="filter_`${f}`" v-model="filtersValues[f].value" style="width: 200px"
+                           @change="$emit('onSetFiltersValues', filtersValues)"
+                           @click="$emit('onSetFiltersValues', filtersValues)"
                     >
                 </template>
                 <template v-if="filter.type === 'dropdown'">
-                    <select id="filter_`${f}`" v-model="newFiltersValues[f].value" style="width: 200px"
-                            @change="$emit('changeFiltersValues', newFiltersValues)">
+                    <select id="filter_`${f}`" v-model="filtersValues[f].value" style="width: 200px"
+                            @change="$emit('onSetFiltersValues', filtersValues)">
                         <option v-bind:value="null">
                             (все)
                         </option>
@@ -26,6 +26,7 @@
             </div>
         </div>
     </div>
+
 </template>
 
 <script>
@@ -34,22 +35,25 @@ export default {
     props: {
         filters: Array
     },
-    emits: ['changeFiltersValues'],
+    emits: ['onSetFiltersValues'],
     data() {
         return {
-            newFiltersValues: [],
+            filtersValues: [],
         }
     },
     computed: {},
     methods: {
-        initFiltersValues() {
-            this.newFiltersValues = this.filters.map((item) => {
-                return {attrName: item.attrName, type: item.type, value: null}
-            });
-        },
+      initFiltersValues() {
+        if (!!this.filters) {
+          this.filtersValues = this.filters.map((item) => {
+            return {attrName: item.attrName, type: item.type, value: null}
+          });
+          // console.log('newFiltersValues: ', this.filtersValues);
+        }
+      },
     },
     mounted() {
-        this.initFiltersValues();
+      this.initFiltersValues();
     },
 }
 </script>
