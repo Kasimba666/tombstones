@@ -2,7 +2,7 @@
   <div>
     <div class="objs-table">
       <div class="obj-row obj-title">
-        <div class="obj-cell title" :class="{right: (i === titles.length-1)}"
+        <div class="obj-cell" :class="{right: (i === titles.length-1)}"
              v-for="(title, i) of titles" :key="i">
           {{ title.titleName }}
         </div>
@@ -13,7 +13,7 @@
              v-for="(row, r) of rows" :key="r"
              :style="{backgroundColor: (r%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
              @click="setCurrentRow(row)">
-          <div :class="{current: (!!currentRow && (row['id'] === currentRow['id']))}">
+          <div :class="{current: isCurrent(row)}">
           </div>
           <template v-if="!!titles && titles.length>0">
             <div class="obj-cell" :class="{right: (i === titles.length-1)}"
@@ -45,7 +45,7 @@ export default {
   computed: {
     sumSize() {
       if (!!this.titles) {
-       return this.titles.reduce((sum, item)=>{
+        return this.titles.reduce((sum, item) => {
           return sum + item.colSize
         }, 0)
       }
@@ -67,9 +67,11 @@ export default {
     setCurrentRow(row) {
       this.currentRow = row;
       //передать значение строки наверх
-      this.$emit('clickRow',  this.currentRow);
-
-
+      this.$emit('clickRow', this.currentRow);
+    },
+    isCurrent(row)
+    {
+      return (!!this.currentRow && (JSON.stringify(row) === JSON.stringify(this.currentRow)));
     },
   },
   mounted() {
@@ -87,6 +89,7 @@ export default {
   justify-content: start;
   border: 1px solid hsla(0, 0%, 50%, 0.8);
 
+
   .obj-row {
     position: relative;
     width: 100%;
@@ -95,7 +98,6 @@ export default {
     flex-flow: row nowrap;
     justify-content: center;
     border-bottom: 1px solid hsla(0, 0%, 50%, 0.6);
-    //border-bottom: none;
     cursor: pointer;
 
     &:hover {
@@ -105,6 +107,8 @@ export default {
     &.obj-title {
       font-weight: bold;
       background-color: hsl(0, 0%, 83%, 0.3);
+      text-align: center;
+      word-break: break-all;
     }
 
     &.chosen {
@@ -132,11 +136,6 @@ export default {
       word-break: break-all;
       border-right: 1px solid hsla(0, 0%, 50%, 0.8);
       text-align: left;
-
-      &.title {
-        //align: center;
-        text-align: center;
-      }
 
       &.right {
         border-right: none;

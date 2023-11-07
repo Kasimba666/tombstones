@@ -33,10 +33,12 @@ export default {
 <style lang="scss">
 .details {
   position: relative;
+  padding: 5px;
+  padding-top: 25px;
 }
 .btn-close {
   position: absolute;
   top: 5px;
-  right: 5px;
+  left: 5px;
 }
 </style>

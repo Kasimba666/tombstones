@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-        <div class="objs-filters-list-details">
+        <div class="main">
           <obj-details class="objs-filters-list filters-list details" :style="{display: visibleDetails ?'block':'none'}"
                        :details="details"
                        @clickCloseDetails="closeDetails"
@@ -14,6 +14,7 @@
                 @onSetFiltersValues="onSetFiltersValues"
             >
             </objs-filters>
+
             <objs-list
                 :rows="rows"
                 :titles="cols"
@@ -48,7 +49,6 @@ export default {
   emits: ['onSetFiltersValues'],
   data() {
     return {
-      fVs: [],
       currentFeature: null,
       visibleFiltersAndList: true,
       visibleDetails: false,
@@ -180,7 +180,7 @@ export default {
 </script>
 
 <style lang="scss">
-.objs-filters-list-details {
+.main {
   border: 1px solid black;
 
   .filters-list {
