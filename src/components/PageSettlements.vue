@@ -44,7 +44,7 @@ export default {
 
   },
   methods: {
-    loadSettlements() {
+    loadObjs() {
       try {
         this.inputGeojson = fromFile;
       } catch (e) {
@@ -61,7 +61,7 @@ export default {
     },
   },
   mounted() {
-    this.loadSettlements();
+    this.loadObjs();
     this.initFiltersValues();
   },
 }
