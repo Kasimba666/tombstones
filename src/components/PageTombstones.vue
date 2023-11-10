@@ -5,13 +5,15 @@
             :scheme="schemeObjs"
             @onSetFiltersValues="setFiltersValues"
   ></ObjsMain>
+  {{text}}
 </template>
 
 <script>
 import ObjsMain from "@/components/ObjsMain"
 import Objs from "@/components/Objs"
 import fromFile from "@/data/Epigraphy_2023.json";
-import imageText from "raw-loader!./images_tombstones.csv";
+import imageText from "raw-loader!@/data/images_tombstones.csv";
+// import imageText from "raw-loader!./images_tombstones.csv";
 
 export default {
   components: {ObjsMain},
