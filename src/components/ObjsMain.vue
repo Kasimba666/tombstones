@@ -5,32 +5,36 @@
         <div class="main">
           <obj-details class="objs-filters-list filters-list details" :style="{display: visibleDetails ?'block':'none'}"
                        :details="details"
+                       :imgs="imgs_details"
                        @clickCloseDetails="closeDetails"
           >
           </obj-details>
           <div class="objs-filters-list filters-list" :style="{display: visibleFiltersAndList ?'block':'none'}">
             <objs-filters v-if="!!this.filters"
-                :filters="filters"
-                @onSetFiltersValues="onSetFiltersValues"
+                          :filters="filters"
+                          @onSetFiltersValues="onSetFiltersValues"
             >
             </objs-filters>
 
             <objs-list
                 :rows="rows"
                 :titles="cols"
-                @clickRow="clickOnRow"
+                :currentRow="currentRow"
+                @clickRow="setCurrentFeatureFromObjsList"
             >
             </objs-list>
           </div>
         </div>
       </div>
-            <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-              <div class="objs-map">
-                <objs-map v-if="!!collectionMap"
-                    :collectionFeatures="collectionMap" >
-                </objs-map>
-              </div>
-            </div>
+      <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+        <div class="objs-map">
+          <objs-map v-if="!!collectionFeaturesForMaps"
+                    :collectionFeatures="collectionFeaturesForMaps"
+                    :oneFeature="oneFeatureForMaps"
+                    @clickPoint="setCurrentFeatureFromObjsMap">
+          </objs-map>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -45,7 +49,7 @@ import ObjsMap from "./ObjsMap";
 
 export default {
   components: {ObjsList, ObjDetails, ObjsFilters, ObjsMap},
-  props: {geojson: Object, scheme: Array, filters: Array},
+  props: {geojson: Object, imgs: Array, scheme: Array, filters: Array},
   emits: ['onSetFiltersValues'],
   data() {
     return {
@@ -66,7 +70,7 @@ export default {
     },
 
     rows() {
-      if (!!this.geojson) {
+      if (this.geojson === null) return null;
         let tempRows = this.geojson.features.map((feature) => {
           let tempProperties = {};
           this.scheme.forEach((item) => {
@@ -77,11 +81,21 @@ export default {
           return tempProperties
         });
         return tempRows;
-      }
+
+    },
+    currentRow(){
+      if(this.currentFeature === null) return null;
+      let tempProperties = {};
+      this.scheme.forEach((item) => {
+        if (item.inTable === 1) {
+          tempProperties[item.attrName] = this.currentFeature.features[0].properties[item.attrName];
+        }
+      });
+      return tempProperties
     },
 
     details() {
-      if (!(this.currentFeature == null)) {
+      if (this.currentFeature != null) {
         let tempDetails = [];
 
         this.scheme.forEach((item) => {
@@ -96,39 +110,47 @@ export default {
         return tempDetails
       }
     },
-    currentFeatureMap() {
-      if (!!this.currentFeature) {
-        let tempProperties = {};
-        this.scheme.forEach((item) => {
-          if (item.inMap === 1) {
-            tempProperties[item.attrName] = this.currentFeature.features[0].properties[item.attrName];
+    imgs_details() {
+      if (!(this.currentFeature === null) && !(this.imgs === null)) {
+        return this.imgs.filter((v) => {
+          if (v['id'].toString() === this.currentFeature.features[0].properties['id'].toString()) {
+            return v
           }
         });
-
+      }
+    },
+    oneFeatureForMaps() {
+      if (!!this.currentFeature) {
+          let newProperties = {};
+          this.scheme.forEach((item) => {
+            if (item.inMap === 1) {
+              newProperties[item.attrName] = this.currentFeature.features[0].properties[item.attrName];
+            }
+          });
         return {
           type: this.currentFeature.type,
           name: this.currentFeature.name,
           crs: this.currentFeature.crs,
           features: [{
             type: this.currentFeature.features[0].type,
-            properties: tempProperties,
+            properties: newProperties,
             geometry: this.currentFeature.features[0].geometry,
-          }]
+          }],
         }
-      }
+      } else return null
     },
-    collectionMap() {
+    collectionFeaturesForMaps() {
       if (!!this.geojson) {
-        let tempFeatures = this.geojson.features.map((feature) => {
-          let tempProperties = {};
+        let newFeatures = this.geojson.features.map((feature) => {
+          let newProperties = {};
           this.scheme.forEach((item) => {
             if (item.inMap === 1) {
-              tempProperties[item.attrName] = feature.properties[item.attrName];
+              newProperties[item.attrName] = feature.properties[item.attrName];
             }
           });
           return {
             type: feature.type,
-            properties: tempProperties,
+            properties: newProperties,
             geometry: feature.geometry,
           }
         });
@@ -136,42 +158,67 @@ export default {
           type: this.geojson.type,
           name: this.geojson.name,
           crs: this.geojson.crs,
-          features: tempFeatures,
+          features: newFeatures,
         }
       }
     },
   },
   methods: {
-    clickOnRow(v) {
-      this.setCurrentFeature(v);
-      this.visibleDetails = true
-      this.visibleFiltersAndList = false;
-    },
-    setCurrentFeature(row) {
-      //найти объект в общем списке, который соответствует всем полям присланной строки
-      if (!!this.geojson && row) {
-        let tempFeature = this.geojson.features.filter((feature) => {
-          let isEqual = true;
-          Object.keys(row).forEach(attr => {
-            if (feature.properties[attr] != row[attr]) isEqual = false;
-          });
-          if (isEqual) return feature;
-        })[0];
-         this.currentFeature = {
+    setCurrentFeatureFromObjsMap(point) {
+      // установить текущий на основе выбранного в картах
+      if (!!this.geojson && !!point) {
+        this.currentFeature = {
           type: this.geojson.type,
           name: this.geojson.name,
           crs: this.geojson.crs,
-          features: [tempFeature]
+          features: [],
         }
-      }//if
+      }
+      this.currentFeature.features.push(this.geojson.features.filter((feature) => {
+        let isEqual = true;
+        Object.entries(point.features[0].properties).forEach(([key, value]) => {
+          if (feature.properties[key] != value) isEqual = false;
+        });
+        if (isEqual) return feature;
+      })[0]);
+      this.visibleDetails = true
+      this.visibleFiltersAndList = false;
     },
-    closeDetails() {
+    setCurrentFeatureFromObjsList(row) {
+      //найти объект в общем списке, который соответствует всем полям присланной строки
+      if (!!this.geojson && !!row) {
+        this.currentFeature = {
+          type: this.geojson.type,
+          name: this.geojson.name,
+          crs: this.geojson.crs,
+          features: [],
+        }
+        this.currentFeature.features.push(this.geojson.features.filter((feature) => {
+          let isEqual = true;
+          Object.entries(row).forEach(([key, value]) => {
+            if (feature.properties[key] != value) isEqual = false;
+          });
+          if (isEqual) return feature;
+        })[0]);
+      }//if
+      this.visibleDetails = true
+      this.visibleFiltersAndList = false;
+    },
+     closeDetails() {
       this.visibleDetails = false;
       this.visibleFiltersAndList = true;
     },
 
     onSetFiltersValues(v) {
       this.$emit('onSetFiltersValues', v);
+      //проверить, входит ли текущий объект в новый набор
+      if (this.currentFeature != null) {
+        if (this.geojson.features.length === 0) {
+          this.currentFeature = null;
+        } else if (!this.geojson.features.some(v => JSON.stringify(v) === JSON.stringify(this.currentFeature.features[0]))) {
+          this.currentFeature = null;
+        }
+      }
     },
   },
   mounted() {

@@ -33,13 +33,13 @@
 export default {
   components: {},
   props: {
+    currentRow: Object,
     rows: Array,
     titles: Array,
   },
   emits: ['clickRow'],
   data() {
     return {
-      currentRow: null,
     }
   },
   computed: {
@@ -65,9 +65,8 @@ export default {
       return r;
     },
     setCurrentRow(row) {
-      this.currentRow = row;
       //передать значение строки наверх
-      this.$emit('clickRow', this.currentRow);
+      this.$emit('clickRow', row);
     },
     isCurrent(row)
     {

@@ -1,6 +1,7 @@
 <template>
   <ObjsMain v-if="!!filtered"
             :geojson="filtered"
+            :imgs="imgs"
             :filters="filters"
             :scheme="schemeObjs"
             @onSetFiltersValues="setFiltersValues"
@@ -9,8 +10,8 @@
 
 <script>
 import ObjsMain from "@/components/ObjsMain"
-import Objs from "@/components/Objs"
-import fromFile from "@/data/bolgar_settlements.json";
+import Objs from "@/components/ObjsMixin"
+import fromFile from "@/data/bolgar_settlements_3857.json";
 
 
 export default {
@@ -20,14 +21,14 @@ export default {
   data() {
     return {
       filtersValues: [],
-
+      imgs: [],
       inputGeojson: null,
 
       schemeObjs: [
         {attrName: 'id', title: 'id', inTable: 1, colSize: 1, inDetails: 0, inMap: 1, filterType: 'none', parentValueFrom: null,},
         {attrName: 'name', title: 'Наименование', inTable: 1, colSize: 3, inDetails: 1, inMap: 1, filterType: 'input', parentValueFrom: null,},
         {attrName: 'region', title: 'Регион', inTable: 1, colSize: 1, inDetails: 1, inMap: 0, filterType: 'dropdown', parentValueFrom: null,},
-        {attrName: 'dating', title: 'Датировка', inTable: 1, colSize: 2, inDetails: 1, inMap: 0, filterType: 'dropdown', parentValueFrom: null,},
+        {attrName: 'dating', title: 'Датировка', inTable: 1, colSize: 2, inDetails: 1, inMap: 1, filterType: 'dropdown', parentValueFrom: null,},
         {attrName: 'location', title: 'Местоположение', inTable: 0, colSize: 1, inDetails: 1, inMap: 0, filterType: 'none', parentValueFrom: null,},
         {attrName: 'area', title: 'Площадь', inTable: 1, colSize: 1, inDetails: 1, inMap: 0, filterType: 'range', parentValueFrom: null,},
         {attrName: 'typesettlement', title: 'Тип', inTable: 1, colSize: 1, inDetails: 1, inMap: 0, filterType: 'dropdown', parentValueFrom: null,},
@@ -50,6 +51,16 @@ export default {
       } catch (e) {
         alert('Ошибка загрузки файла');
       }
+      //привести все имена атрибутов к lower case
+      this.inputGeojson.features = this.inputGeojson.features.map((v) => {
+        return {
+          type: v.type,
+          properties: Object.fromEntries(Object.entries(v.properties).map(([key, value]) => {
+            return [key.toLowerCase(), value]
+          })),
+          geometry: v.geometry,
+        }
+      });
     },
     initFiltersValues() {
       this.filtersValues = this.filters.map((item) => {

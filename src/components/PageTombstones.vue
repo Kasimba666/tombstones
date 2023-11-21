@@ -1,19 +1,18 @@
 <template>
   <ObjsMain v-if="!!filtered"
             :geojson="filtered"
+            :imgs="imgs"
             :filters="filters"
             :scheme="schemeObjs"
             @onSetFiltersValues="setFiltersValues"
   ></ObjsMain>
-  {{text}}
 </template>
 
 <script>
 import ObjsMain from "@/components/ObjsMain"
-import Objs from "@/components/Objs"
-import fromFile from "@/data/Epigraphy_2023.json";
+import Objs from "@/components/ObjsMixin"
+import fromFile from "@/data/Epigraphy_2023_3857.json";
 import imageText from "raw-loader!@/data/images_tombstones.csv";
-// import imageText from "raw-loader!./images_tombstones.csv";
 
 export default {
   components: {ObjsMain},
@@ -21,12 +20,12 @@ export default {
   mixins: [Objs],
   data() {
     return {
-      text: '',
+      imgs: [],
       filtersValues: [],
       inputGeojson: null,
       schemeObjs: [
         {
-          attrName: 'ID',
+          attrName: 'id',
           title: 'id',
           inTable: 1,
           colSize: 1,
@@ -36,7 +35,7 @@ export default {
           parentValueFrom: null,
         },
         {
-          attrName: 'NAME',
+          attrName: 'name',
           title: 'Наименование',
           inTable: 1,
           colSize: 3,
@@ -46,8 +45,8 @@ export default {
           parentValueFrom: null,
         },
         {
-          attrName: 'ADMIN',
-          title: 'Регион',
+          attrName: 'admin',
+          title: 'Район',
           inTable: 1,
           colSize: 2,
           inDetails: 1,
@@ -56,27 +55,27 @@ export default {
           parentValueFrom: null,
         },
         {
-          attrName: 'LOCAL',
+          attrName: 'local',
           title: 'Нас.пункт',
           inTable: 1,
           colSize: 2,
           inDetails: 1,
           inMap: 0,
           filterType: 'dropdown',
-          parentValueFrom: 'ADMIN',
+          parentValueFrom: 'admin',
         },
         {
-          attrName: 'DATE',
+          attrName: 'date',
           title: 'Датировка',
           inTable: 1,
           colSize: 1,
           inDetails: 1,
-          inMap: 0,
+          inMap: 1,
           filterType: 'dropdown',
           parentValueFrom: null,
         },
         {
-          attrName: 'FRONT',
+          attrName: 'front',
           title: 'Фронт',
           inTable: 1,
           colSize: 1,
@@ -86,7 +85,7 @@ export default {
           parentValueFrom: null,
         },
         {
-          attrName: 'WHOLE',
+          attrName: 'whole',
           title: 'Полный',
           inTable: 1,
           colSize: 1,
@@ -96,7 +95,7 @@ export default {
           parentValueFrom: null,
         },
         {
-          attrName: 'PLACE',
+          attrName: 'place',
           title: 'Место',
           inTable: 1,
           colSize: 1,
@@ -106,7 +105,7 @@ export default {
           parentValueFrom: null,
         },
         {
-          attrName: 'POSITION',
+          attrName: 'position',
           title: 'Положение',
           inTable: 1,
           colSize: 1,
@@ -116,7 +115,7 @@ export default {
           parentValueFrom: null,
         },
         {
-          attrName: 'YEAR',
+          attrName: 'year',
           title: 'Год',
           inTable: 1,
           colSize: 1,
@@ -157,9 +156,33 @@ export default {
       } catch (e) {
         alert('Ошибка загрузки файла');
       }
+      //привести все имена атрибутов к lower case
+      this.inputGeojson.features = this.inputGeojson.features.map((v) => {
+        return {
+          type: v.type,
+          properties: Object.fromEntries(Object.entries(v.properties).map(([key, value]) => {
+            return [key.toLowerCase(), value]
+          })),
+          geometry: v.geometry,
+        }
+      });
     },
     loadTextImages() {
       this.text = imageText;
+      let lines = this.text.split(/\r\n|\r|\n/g);
+      if (lines.length > 1) {
+        let titles = lines.shift().split(';');
+        lines.forEach((v) => {
+          let img = {};
+          if (v.replaceAll(' ', '') != '') {
+            let line = v.split(';');
+            for (let i = 0; i < line.length; i++) {
+              img[titles[i].toLowerCase()] = line[i];
+            }
+            this.imgs.push(img);
+          }
+        });
+      }
     },
 
     initFiltersValues() {

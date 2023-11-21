@@ -42,7 +42,9 @@ export default {
       filtersValues: [],
     }
   },
-  computed: {},
+  computed: {
+
+  },
   methods: {
     initFiltersValues() {
       if (!!this.filters) {
@@ -52,11 +54,17 @@ export default {
       }
     },
     valuesDependentOnParent(f) {
-
-      if (f.attrParent != null || this.filtersValues.filter((fV) => { if (fV.attrName === f.attrParent) { return fV } })?.[0]?.value === null)
-      { return f.listValues.filter((v) =>
-      { if (this.filtersValues.filter((fV) => { if (fV.attrName === f.attrParent) { return fV } })[0].value === v.parentValue) { return v } });
-      } else { return f.listValues; }
+      if (f.attrParent != null || this.filtersValues.filter((fV) => {if (fV.attrName === f.attrParent) {return fV} })?.[0]?.value === null) {
+        //если текущее значение фильтра не null и не попадает в диапазон parent, то установить null
+        let newListValues = f.listValues.filter((v) => {if (this.filtersValues.filter((fV) => { if (fV.attrName === f.attrParent) {return fV } })[0].value === v.parentValue) {return v}});
+        let filterValue = this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })?.[0]?.value;
+        if (filterValue != null) {
+          if  (!newListValues.map((v)=>{return v.value}).includes(filterValue)) {this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })[0].value = null}
+        }
+        return newListValues;
+      } else {
+        return f.listValues;
+      }
     },
   },
   mounted() {

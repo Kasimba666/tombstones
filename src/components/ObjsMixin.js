@@ -1,5 +1,3 @@
-import fromFile from "@/data/bolgar_settlements.json";
-
 export default {
     data() {
         return {}
