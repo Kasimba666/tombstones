@@ -31,6 +31,7 @@
           <objs-map v-if="!!collectionFeaturesForMaps"
                     :collectionFeatures="collectionFeaturesForMaps"
                     :oneFeature="oneFeatureForMaps"
+                    :scheme="scheme"
                     @clickPoint="setCurrentFeatureFromObjsMap">
           </objs-map>
         </div>

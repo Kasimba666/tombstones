@@ -2,7 +2,7 @@ import "bootstrap/dist/css/bootstrap.css"
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-
+import store from './store'
 import "bootstrap/dist/js/bootstrap.js"
 import OpenLayersMap from "vue3-openlayers";
 import "vue3-openlayers/styles.css";
@@ -12,5 +12,6 @@ import "vue3-openlayers/styles.css";
 const app = createApp(App)
 app
     .use(router)
+    .use(store)
     .use(OpenLayersMap)
     .mount('#app')

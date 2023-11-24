@@ -66,7 +66,7 @@ export default {
         },
         {
           attrName: 'date',
-          title: 'Датировка',
+          title: 'Век',
           inTable: 1,
           colSize: 1,
           inDetails: 1,

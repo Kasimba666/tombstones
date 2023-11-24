@@ -1,17 +1,17 @@
 <template>
   <!--  {{!!oneFeature ? oneFeature : ''}}-->
   <!--  {{!!vectorLayer ? vectorLayer : ''}}-->
-  <div id="map" class="map"></div>
+  <div id="map" class="map">
+    <div id="info"></div>
+  </div>
   <div id="popup" class="ol-popup">
     <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-    <div id="popup-content">{{contentPopup}}</div>
-    <button @click="onSetCurrentPoint">Перейти</button>
+    <button class="btn-popup" @click="onSetCurrentPoint">{{ popupTitle }}</button>
+    <div id="popup-content"></div>
   </div>
 </template>
 
 <script>
-import Circle from 'ol/geom/Circle.js';
-import Feature from 'ol/Feature.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import Map from 'ol/Map.js';
 import View from 'ol/View.js';
@@ -19,6 +19,7 @@ import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style.js';
 import {OSM, Vector as VectorSource} from 'ol/source.js';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
 import Overlay from 'ol/Overlay.js';
+import {ScaleLine, defaults as defaultControls} from 'ol/control.js';
 
 
 const styles = {
@@ -56,6 +57,7 @@ export default {
   props: {
     collectionFeatures: Object,
     oneFeature: Object,
+    scheme: Array,
   },
   emits: ['clickPoint'],
   data() {
@@ -63,6 +65,7 @@ export default {
       map: null,
       contentPopup: '',
       closer: null,
+      popupTitle: '',
     }
   },
   computed: {
@@ -152,13 +155,61 @@ export default {
           zoom: 9,
         }),
       });
+//ScaleLine
+      let scaleLine = new ScaleLine({units: 'metric', bar: true});
+      this.map.addControl(scaleLine);
+
       if (this.collectionFeatures != null) this.map.addLayer(this.vectorLayerCollection);
       this.map.addOverlay(overlay);
       let tempCollectionFeatures = this.collectionFeatures;
-      this.map.on('click', function(event){
-        let feature = this.forEachFeatureAtPixel(event.pixel, function(feature, layer) {return feature; });
+
+//Tooltip
+      const info = document.getElementById('info');
+
+      let currentFeature;
+
+      this.map.on('pointermove', function (evt) {
+        if (evt.dragging) {
+          info.style.visibility = 'hidden';
+          currentFeature = undefined;
+          return;
+        }
+        const pixel = this.getEventPixel(evt.originalEvent);
+        const feature = evt.originalEvent.target.closest('.ol-control')
+            ? undefined
+            : this.forEachFeatureAtPixel(pixel, function (feature) {
+              return feature;
+            });
+        if (feature) {
+          info.style.left = 10 + pixel[0] + 'px';
+          info.style.top = pixel[1] + 'px';
+          if (feature !== currentFeature) {
+            info.style.visibility = 'visible';
+            info.innerText = feature.get('name');
+          }
+        } else {
+          info.style.visibility = 'hidden';
+        }
+        currentFeature = feature;
+
+
+
+      });
+
+      // map.on('click', function (evt) {
+      //   displayFeatureInfo(evt.pixel, evt.originalEvent.target);
+      // });
+      this.map.getTargetElement().addEventListener('pointerleave', function () {
+        currentFeature = undefined;
+        info.style.visibility = 'hidden';
+      });
+
+      let scheme = this.scheme;
+      //Popup
+      this.map.on('click', event => {
+        let feature = this.map.forEachFeatureAtPixel(event.pixel, function(feature, layer) {return feature; });
         if (feature != null && feature != undefined) {
-          let coord = this.getCoordinateFromPixel(event.pixel);//Координаты точки как места на карте
+          let coord = this.map.getCoordinateFromPixel(event.pixel);//Координаты точки как места на карте
           //найти в collectionFeatures сооветствие для feature
           currentPointFeature = {
             type: tempCollectionFeatures.type,
@@ -173,9 +224,12 @@ export default {
             });
             if (isEqual) return v;
           })[0]);
-          let content = '<h7>' + feature.get('name')+ '</h7>' + '<br>';
+          this.popupTitle = feature.get('name');
+          let content = '';
           Object.entries(currentPointFeature.features[0].properties).forEach(([key, value])=>{
-            if (key != 'id' && key != 'name' && value != null) {content += '<h8>' + value + '</h8>' + '<br>' }
+            if (key != 'id' && key != 'name' && value != null) {
+              content += '<h8>' + scheme.filter(v => {if (v['attrName'] === key) return v})[0].title + ': ' + value + '</h8>' + '<br>'
+            }
           });
 
           if (content != '') {
@@ -185,10 +239,21 @@ export default {
           };
 
         };
+      });//onclick
+//Pointer on hover
+      this.map.on("pointermove", function (evt) {
+        var hit = this.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+          return true;
+        });
+        if (hit) {
+          this.getTargetElement().style.cursor = 'pointer';
+        } else {
+          this.getTargetElement().style.cursor = '';
+        }
       });
     },
-    onSetCurrentPoint(){
 
+    onSetCurrentPoint(){
       this.$emit('clickPoint', currentPointFeature);
     },
   },
@@ -233,20 +298,42 @@ export default {
 
 <style lang="scss">
 .map {
+  position: relative;
   width: 100%;
   height: 100%;
   border: 1px solid gray;
 }
+#map {
+  position: relative;
+}
+
+#info {
+  position: absolute;
+  display: inline-block;
+  height: auto;
+  width: auto;
+  z-index: 100;
+  background-color: hsl(0, 0%, 100%, 0.8);
+  color: #333;
+  text-align: left;
+  border-radius: 4px;
+  padding: 5px;
+  left: 50%;
+  transform: translateX(3%);
+  visibility: hidden;
+  pointer-events: none;
+}
 .ol-popup {
   position: absolute;
-  background-color: white;
+  background-color: hsl(0, 0%, 100%, 0.8);
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-  padding: 15px;
+  padding: 5px;
   border-radius: 10px;
   border: 1px solid #cccccc;
   bottom: 12px;
   left: -50px;
-  min-width: 280px;
+  width: auto;
+  min-width: 100px;
 }
 .ol-popup:after, .ol-popup:before {
   top: 100%;
@@ -277,5 +364,14 @@ export default {
 }
 .ol-popup-closer:after {
   content: "✖";
+}
+.btn-popup {
+  height: auto;
+  width: auto;
+  border: 1px solid hsl(0, 0%, 80%);
+  border-radius: 5px;
+  text-align: left;
+  padding-left: 3px;
+  padding-right: 3px;
 }
 </style>
