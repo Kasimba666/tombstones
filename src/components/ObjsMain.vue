@@ -3,13 +3,13 @@
     <div class="row">
       <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
         <div class="main">
-          <obj-details class="objs-filters-list filters-list details" :style="{display: visibleDetails ?'block':'none'}"
+          <obj-details class="filters-list filters-and-list details" :style="{display: visibleDetails ?'block':'none'}"
                        :details="details"
                        :imgs="imgs_details"
                        @clickCloseDetails="closeDetails"
           >
           </obj-details>
-          <div class="objs-filters-list filters-list" :style="{display: visibleFiltersAndList ?'block':'none'}">
+          <div class="filters-list filters-and-list" :style="{display: visibleFiltersAndList ?'block':'none'}">
             <objs-filters v-if="!!this.filters"
                           :filters="filters"
                           @onSetFiltersValues="onSetFiltersValues"
@@ -81,7 +81,7 @@ export default {
           });
           return tempProperties
         });
-        return tempRows;
+        return tempRows.sort((a, b) => a['name'].localeCompare(b['name']));
 
     },
     currentRow(){
@@ -229,24 +229,25 @@ export default {
 
 <style lang="scss">
 .main {
-  border: 1px solid black;
+  //border: 1px solid black;
 
-  .filters-list {
+  .filters-and-list {
     width: 100%;
     height: 100%;
     display: flex;
     flex-flow: column;
-    background-color: hsl(0, 0%, 90%);
-
+    background-color: transparent;
 
     .filters {
-      background-color: hsl(0, 0%, 70%);
+      background-color: transparent;
       padding: 5px;
+      border: 1px solid red;
     }
 
     .list {
-      background-color: hsl(0, 0%, 70%);
+      background-color: transparent;
       padding: 5px;
+
     }
   }
 

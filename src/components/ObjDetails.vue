@@ -1,18 +1,16 @@
 <template>
   <div class="details">
-    <div>
+    <div main-images-and-3d>
       <div class="collection-images" v-if="!!imgsCard">
         <div v-for="(v, i) of imgsCard.imgs" :key="i">
           <a :href="v.large" target="_blank">
-            <div class="dogs-card-image-background"
+            <div class="my-image"
                  :style="{backgroundImage: `url(${v.small})`}">
             </div>
           </a>
         </div>
       </div>
-      <div class="sketchfab"
-           v-if="!!details && sketchfab != null">
-        <div class="sketchfab-embed-wrapper">
+        <div class="sketchfab-embed-wrapper" v-if="!!details && sketchfab != null">
           <iframe allowfullscreen mozallowfullscreen="true"
                   webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking
                   execution-while-out-of-viewport execution-while-not-rendered web-share
@@ -20,7 +18,6 @@
           </iframe>
         </div>
 
-      </div>
     </div>
     <div
         v-for="(detail, i) of details" :key="i">
@@ -40,7 +37,7 @@
           <div v-for="(v,i) of w.imgs" :key="i">
             <div v-if="v != null">
               <a :href="v.large" target="_blank">
-                <div class="dogs-card-image-background" :style="{backgroundImage: `url(${v.small})`}"></div>
+                <div class="my-image" :style="{backgroundImage: `url(${v.small})`}"></div>
               </a>
             </div>
           </div>
@@ -124,10 +121,7 @@ export default {
     },
   },
   methods: {
-    urlHref(v) {
-      return `${v}`
-      // return `url(${v})`
-    },
+
   },
   mounted() {
 
@@ -136,56 +130,48 @@ export default {
 </script>
 
 <style lang="scss">
-.details {
-  position: relative;
-  padding: 5px;
-  padding-top: 25px;
-}
-
 .btn-close {
   position: absolute;
   top: 5px;
-  left: 5px;
+  right: 5px;
 }
 
-.collection-images {
+.details {
   position: relative;
-  height: 50%;
-  display: flex;
-  flex-flow: row;
-  justify-content: space-around;
-  //justify-content: center;
-  gap: 10px;
-
+  padding: 30px 5px 5px 5px;
 }
-
 .my-image {
   flex: 1 1 auto;
-  width: 200px;
-  height: auto;
-  min-width: 20px;
+  width: 150px;
+  height: 200px;
+  min-width: 30px;
   min-height: 60px;
-  border-style: solid;
-  border-color: gray;
-  border-radius: 20px;
+  background-color: white;
+  border-radius: 2px;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  align-items: center;
 
   &:hover {
     box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
   }
 }
+.main-images-and-3d {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 5px;
+  justify-content: left;
+  align-items: flex-start;
 
-.dogs-card-image-background {
-  flex: 0 0 auto;
-  width: 140px;
-  height: 140px;
-  //width: auto;
-  //height: 100%;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
+}
+
+.collection-images {
+  position: relative;
+  height: auto;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: left;
+  align-items: flex-start;
+  gap: 10px;
 }
 </style>

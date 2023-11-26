@@ -55,15 +55,15 @@ export default {
     },
     valuesDependentOnParent(f) {
       if (f.attrParent != null || this.filtersValues.filter((fV) => {if (fV.attrName === f.attrParent) {return fV} })?.[0]?.value === null) {
-        //если текущее значение фильтра не null и не попадает в диапазон parent, то установить null
         let newListValues = f.listValues.filter((v) => {if (this.filtersValues.filter((fV) => { if (fV.attrName === f.attrParent) {return fV } })[0].value === v.parentValue) {return v}});
         let filterValue = this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })?.[0]?.value;
+        //если текущее значение фильтра не null, но не попадает в диапазон допустимых значений из parent, то установить значение null
         if (filterValue != null) {
           if  (!newListValues.map((v)=>{return v.value}).includes(filterValue)) {this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })[0].value = null}
         }
-        return newListValues;
+        return newListValues != [] ? newListValues.sort((a, b) => a['value'] > b['value'] ? 1 : -1) : null;
       } else {
-        return f.listValues;
+        return f.listValues != [] ? f.listValues.sort((a, b) => a['value'] > b['value'] ? 1 : -1) : null;
       }
     },
   },

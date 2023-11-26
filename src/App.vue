@@ -39,9 +39,11 @@ export default {
           break;
         case screen.width <= this.screenBreakpoints.xl:
           t = "lg";
+        case screen.width <= this.screenBreakpoints.xxl:
+          t = "xl";
           break;
         default:
-          t = "xl";
+          t = "xxl";
           break;
       }
       screen['width'] =  window.innerWidth;

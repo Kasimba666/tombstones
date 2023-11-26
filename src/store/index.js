@@ -8,6 +8,7 @@ const screenBreakpoints = {
     md: 768,
     lg: 992,
     xl: 1200,
+    xxl: 1600,
 };
 export default new Vuex.Store({
     state: {
@@ -21,7 +22,6 @@ export default new Vuex.Store({
     mutations: {
         setScreen(state, v){
             state.screen = v;
-            console.log(v);
         },
     },
     actions: {

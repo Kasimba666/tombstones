@@ -80,8 +80,6 @@ export default {
         let coordinatesY = coordinates.map(v => +v[1].toFixed(0)).sort((a, b) => {
           return a > b ? 1 : -1
         });
-        // let coordinatesX = coordinates.map(v=>Math.round(v[0])).sort((a,b)=>{return a>b ? 1 : -1});
-        // let coordinatesY = coordinates.map(v=>Math.round(v[1])).sort((a,b)=>{return a>b ? 1 : -1});
         return [coordinatesX[0], coordinatesY[0], coordinatesX[coordinatesX.length - 1], coordinatesY[coordinatesY.length - 1]];
       } else return null
     },
@@ -227,7 +225,7 @@ export default {
           this.popupTitle = feature.get('name');
           let content = '';
           Object.entries(currentPointFeature.features[0].properties).forEach(([key, value])=>{
-            if (key != 'id' && key != 'name' && value != null) {
+            if (key != 'id' && key != 'name' && value != null && value != '') {
               content += '<h8>' + scheme.filter(v => {if (v['attrName'] === key) return v})[0].title + ': ' + value + '</h8>' + '<br>'
             }
           });
