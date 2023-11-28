@@ -6,12 +6,12 @@ import PageAbout from '../components/PageAbout.vue'
 
 const routes = [
     {
-        path: '/settlements',
-        component: PageSettlements,
-    },
-    {
         path: '/stones',
         component: PageTombstones,
+    },
+    {
+        path: '/settlements',
+        component: PageSettlements,
     },
     {
         path: '/about',
@@ -19,7 +19,7 @@ const routes = [
     },
     {
         path: '/',
-        redirect: '/settlements',
+        redirect: '/stones',
     },
 ]
 

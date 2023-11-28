@@ -3,13 +3,13 @@
     <div class="row">
       <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
         <div class="main">
-          <obj-details class="filters-list filters-and-list details" :style="{display: visibleDetails ?'block':'none'}"
+          <obj-details :style="{display: visibleDetails ?'block':'none'}"
                        :details="details"
                        :imgs="imgs_details"
                        @clickCloseDetails="closeDetails"
           >
           </obj-details>
-          <div class="filters-list filters-and-list" :style="{display: visibleFiltersAndList ?'block':'none'}">
+          <div :style="{display: visibleFiltersAndList ?'block':'none'}">
             <objs-filters v-if="!!this.filters"
                           :filters="filters"
                           @onSetFiltersValues="onSetFiltersValues"
@@ -18,7 +18,7 @@
 
             <objs-list
                 :rows="rows"
-                :titles="cols"
+                :cols="cols"
                 :currentRow="currentRow"
                 @clickRow="setCurrentFeatureFromObjsList"
             >

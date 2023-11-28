@@ -1,6 +1,13 @@
 <template>
   <div class="details">
-    <div main-images-and-3d>
+    <div class="detail-properties">
+      <div v-for="(detail, i) of details" :key="i">
+        <div v-if="!!detail.value && detail.titleName != '3d'">
+          <b> {{ detail.titleName }}: </b> {{ detail.value }}
+        </div>
+      </div>
+    </div>
+    <div class="main-images-and-3d">
       <div class="collection-images" v-if="!!imgsCard">
         <div v-for="(v, i) of imgsCard.imgs" :key="i">
           <a :href="v.large" target="_blank">
@@ -10,40 +17,34 @@
           </a>
         </div>
       </div>
-        <div class="sketchfab-embed-wrapper" v-if="!!details && sketchfab != null">
-          <iframe allowfullscreen mozallowfullscreen="true"
-                  webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking
-                  execution-while-out-of-viewport execution-while-not-rendered web-share
-                  :src="sketchfab">
-          </iframe>
-        </div>
-
-    </div>
-    <div
-        v-for="(detail, i) of details" :key="i">
-      <div v-if="!!detail.value && detail.titleName != '3d'">
-        <b> {{ detail.titleName }}: </b> {{ detail.value }}
+      <div class="sketchfab-embed-wrapper" v-if="!!details && sketchfab != null">
+        <iframe allowfullscreen mozallowfullscreen="true"
+                webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking
+                execution-while-out-of-viewport execution-while-not-rendered web-share
+                :src="sketchfab">
+        </iframe>
       </div>
-    </div>
-    <button class="btn-close"
-            @click="$emit('clickCloseDetails')"
-    >
-    </button>
 
-    <div>
-      <div v-if="!!imgsOther">
-        <div class="collection-images" v-for="w of imgsOther">
-          <!--          <div>{{w['categoryTitle']}}</div>-->
-          <div v-for="(v,i) of w.imgs" :key="i">
-            <div v-if="v != null">
-              <a :href="v.large" target="_blank">
-                <div class="my-image" :style="{backgroundImage: `url(${v.small})`}"></div>
-              </a>
-            </div>
+    </div>
+  <button class="btn-close"
+          @click="$emit('clickCloseDetails')"
+  >
+  </button>
+
+  <div>
+    <div v-if="!!imgsOther">
+      <div class="collection-images" v-for="w of imgsOther">
+        <!--          <div>{{w['categoryTitle']}}</div>-->
+        <div v-for="(v,i) of w.imgs" :key="i">
+          <div v-if="v != null">
+            <a :href="v.large" target="_blank">
+              <div class="my-image" :style="{backgroundImage: `url(${v.small})`}"></div>
+            </a>
           </div>
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>
 
@@ -120,9 +121,7 @@ export default {
       })[0].value + '/embed';
     },
   },
-  methods: {
-
-  },
+  methods: {},
   mounted() {
 
   },
@@ -139,7 +138,17 @@ export default {
 .details {
   position: relative;
   padding: 30px 5px 5px 5px;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
 }
+
+.detail-properties {
+  padding: 5px;
+  border: 2px solid hsla(0, 0%, 50%, 0.2);
+  border-radius: 5px;
+}
+
 .my-image {
   flex: 1 1 auto;
   width: 150px;
@@ -156,22 +165,33 @@ export default {
     box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
   }
 }
+
 .main-images-and-3d {
+  width: 100%;
+  height: auto;
   display: flex;
   flex-flow: row wrap;
   gap: 5px;
-  justify-content: left;
+  justify-content: flex-start;
   align-items: flex-start;
+
 
 }
 
 .collection-images {
   position: relative;
   height: auto;
+  width: auto;
   display: flex;
   flex-flow: row wrap;
-  justify-content: left;
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 10px;
+  padding: 5px;
+}
+
+.sketchfab-embed-wrapper {
+  align-self: center;
+  padding: 5px;
 }
 </style>

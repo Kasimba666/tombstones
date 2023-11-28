@@ -19,7 +19,7 @@ import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style.js';
 import {OSM, Vector as VectorSource} from 'ol/source.js';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
 import Overlay from 'ol/Overlay.js';
-import {ScaleLine, defaults as defaultControls} from 'ol/control.js';
+import {ScaleLine} from 'ol/control.js';
 
 
 const styles = {
@@ -332,6 +332,7 @@ export default {
   left: -50px;
   width: auto;
   min-width: 100px;
+
 }
 .ol-popup:after, .ol-popup:before {
   top: 100%;
@@ -371,5 +372,8 @@ export default {
   text-align: left;
   padding-left: 3px;
   padding-right: 3px;
+  &:hover {
+    box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
+  }
 }
 </style>
