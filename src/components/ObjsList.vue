@@ -2,7 +2,9 @@
   <div>
     <div class="objs-table">
       <div class="obj-title">
-        <div class="obj-cell title" :class="{right: (i === cols.length-1)}"
+        <div class="obj-cell title"
+             :class="{right: (i === cols.length-1)}"
+             :style="{width:  Math.round((title.colSize / sumSize) * 100) + '%' }"
              v-for="(title, i) of cols" :key="i">
           {{ title.titleName }}
         </div>
@@ -10,14 +12,16 @@
 
       <template v-if="!!rows && rows.length>0">
         <div class="obj-row"
-             :class="{last: (r == rows.length-1)}"
+             :class="{last: (r === rows.length-1)}"
              v-for="(row, r) of rows" :key="r"
              :style="{backgroundColor: (r%2 === 1) ? 'hsl(0, 0%, 83%, 0.3)' : 'none'}"
              @click="setCurrentRow(row)">
           <div :class="{current: isCurrent(row)}">
           </div>
           <template v-if="!!cols && cols.length>0">
-            <div class="obj-cell cell-row" :class="{right: (i === cols.length-1)}"
+            <div class="obj-cell cell-row"
+                 :class="{right: (i === cols.length-1)}"
+                 :style="{width:  Math.round((title.colSize / sumSize) * 100) + '%' }"
                  v-for="(title, i) of cols" :key="i"
             >
               {{ arrToString(row[title.attrName]) }}
@@ -131,9 +135,9 @@ export default {
 
 .obj-cell {
   position: relative;
-  width: 100px;
+  //width: 100px;
   height: auto;
-  min-width: 50px;
+  //min-width: 50px;
   padding: 2px;
   flex: 1 1 auto;
   border-right: 1px solid hsla(0, 0%, 50%, 0.8);

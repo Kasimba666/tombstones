@@ -25,7 +25,7 @@ export default {
       inputGeojson: null,
 
       schemeObjs: [
-        {attrName: 'id', title: 'id', inTable: 1, colSize: 1, inDetails: 0, inMap: 1, filterType: 'none', parentValueFrom: null,},
+        {attrName: 'id', title: 'id', inTable: 0, colSize: 1, inDetails: 0, inMap: 1, filterType: 'none', parentValueFrom: null,},
         {attrName: 'name', title: 'Наименование', inTable: 1, colSize: 3, inDetails: 1, inMap: 1, filterType: 'input', parentValueFrom: null,},
         {attrName: 'region', title: 'Регион', inTable: 1, colSize: 1, inDetails: 1, inMap: 0, filterType: 'dropdown', parentValueFrom: null,},
         {attrName: 'dating', title: 'Датировка', inTable: 1, colSize: 2, inDetails: 1, inMap: 1, filterType: 'dropdown', parentValueFrom: null,},
