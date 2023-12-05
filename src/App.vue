@@ -3,17 +3,17 @@
     {{ screen.type }}<br/>
     {{ screen.width }}px
   </div>
-    <Navbar></Navbar>
+    <ObjsNavbar></ObjsNavbar>
     <div class="app">
       <router-view/>
     </div>
 </template>
 
 <script>
-import Navbar from "@/components/NavBar";
+import ObjsNavbar from "@/components/ObjsNavBar";
 import {mapGetters, mapMutations} from "vuex";
 export default {
-  components: {Navbar},
+  components: {ObjsNavbar},
   data() {
     return {
       DEBUG: process.env.NODE_ENV === 'development',
@@ -28,18 +28,18 @@ export default {
       let screen = {};
       let t = "";
       switch (true) {
-        case screen.width <= this.screenBreakpoints.sm:
+        case this.screen.width <= this.screenBreakpoints.sm:
           t = "xs";
           break;
-        case screen.width <= this.screenBreakpoints.md:
+        case this.screen.width <= this.screenBreakpoints.md:
           t = "sm";
           break;
-        case screen.width <= this.screenBreakpoints.lg:
+        case this.screen.width <= this.screenBreakpoints.lg:
           t = "md";
           break;
-        case screen.width <= this.screenBreakpoints.xl:
+        case this.screen.width <= this.screenBreakpoints.xl:
           t = "lg";
-        case screen.width <= this.screenBreakpoints.xxl:
+        case this.screen.width <= this.screenBreakpoints.xxl:
           t = "xl";
           break;
         default:

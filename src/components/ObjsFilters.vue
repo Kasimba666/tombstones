@@ -6,12 +6,14 @@
       </div>
       <div class="filter-placeholder">
         <template v-if="filter.type === 'input'">
-          <input id="filter_`${f}`" v-model="filtersValues[f].value"
+          <input id="filter_`${f}`"
+                 v-model="filtersValues[f].value"
+                 :placeholder=filter.title.toLowerCase()
                  @change="$emit('onSetFiltersValues', filtersValues)"
                  @click="$emit('onSetFiltersValues', filtersValues)"
           >
         </template>
-        <template v-if="filter.type === 'dropdown'">
+        <div v-if="filter.type === 'dropdown'">
           <select id="filter_`${f}`" v-model="filtersValues[f].value"
                   @change="$emit('onSetFiltersValues', filtersValues)">
             <option :value="null">
@@ -23,7 +25,7 @@
               </template>
             </option>
           </select>
-        </template>
+        </div>
       </div>
     </div>
   </div>
@@ -98,6 +100,8 @@ export default {
   }
 
   input, select {
+    //width: 150px;
+    background-color: hsl(180, 100%, 25%, 0.08);
     width: 100%;
   }
 }

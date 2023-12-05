@@ -5,8 +5,10 @@
     <div id="info"></div>
   </div>
   <div id="popup" class="ol-popup">
-    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-    <button class="btn-popup" @click="onSetCurrentPoint">{{ popupTitle }}</button>
+    <div class="btns-control-popup">
+      <button class="btn-popup-main" @click="onSetCurrentPoint">{{ popupTitle }}</button>
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+    </div>
     <div id="popup-content"></div>
   </div>
 </template>
@@ -26,7 +28,7 @@ const styles = {
   'PointCollection': new Style({
     image: new CircleStyle({
       radius: 5,
-      fill: new Fill({color: [255,0,0,0.2]}),
+      fill: new Fill({color: [255, 0, 0, 0.2]}),
       stroke: new Stroke({color: 'red', width: 2}),
     }),
   }),
@@ -134,7 +136,7 @@ export default {
         autoPan: true,
         offset: [0, -10]
       });
-      closer.onclick = function() {
+      closer.onclick = function () {
         overlay.setPosition(undefined);
         this.blur();
         return false;
@@ -191,7 +193,6 @@ export default {
         currentFeature = feature;
 
 
-
       });
 
       // map.on('click', function (evt) {
@@ -205,7 +206,9 @@ export default {
       let scheme = this.scheme;
       //Popup
       this.map.on('click', event => {
-        let feature = this.map.forEachFeatureAtPixel(event.pixel, function(feature, layer) {return feature; });
+        let feature = this.map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
+          return feature;
+        });
         if (feature != null && feature != undefined) {
           let coord = this.map.getCoordinateFromPixel(event.pixel);//Координаты точки как места на карте
           //найти в collectionFeatures сооветствие для feature
@@ -224,9 +227,11 @@ export default {
           })[0]);
           this.popupTitle = feature.get('name');
           let content = '';
-          Object.entries(currentPointFeature.features[0].properties).forEach(([key, value])=>{
+          Object.entries(currentPointFeature.features[0].properties).forEach(([key, value]) => {
             if (key != 'id' && key != 'name' && value != null && value != '') {
-              content += '<h8>' + scheme.filter(v => {if (v['attrName'] === key) return v})[0].title + ': ' + value + '</h8>' + '<br>'
+              content += '<h8>' + scheme.filter(v => {
+                if (v['attrName'] === key) return v
+              })[0].title + ': ' + value + '</h8>' + '<br>'
             }
           });
 
@@ -234,13 +239,15 @@ export default {
             this.contentPopup = content;
             content_element.innerHTML = content;
             overlay.setPosition(coord);
-          };
+          }
+          ;
 
-        };
+        }
+        ;
       });//onclick
 //Pointer on hover
       this.map.on("pointermove", function (evt) {
-        var hit = this.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+        var hit = this.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
           return true;
         });
         if (hit) {
@@ -251,7 +258,7 @@ export default {
       });
     },
 
-    onSetCurrentPoint(){
+    onSetCurrentPoint() {
       this.$emit('clickPoint', currentPointFeature);
     },
   },
@@ -301,6 +308,7 @@ export default {
   height: 100%;
   border: 1px solid gray;
 }
+
 #map {
   position: relative;
 }
@@ -321,10 +329,11 @@ export default {
   visibility: hidden;
   pointer-events: none;
 }
+
 .ol-popup {
   position: absolute;
   background-color: hsl(0, 0%, 100%, 0.8);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   padding: 5px;
   border-radius: 10px;
   border: 1px solid #cccccc;
@@ -334,6 +343,7 @@ export default {
   min-width: 100px;
 
 }
+
 .ol-popup:after, .ol-popup:before {
   top: 100%;
   border: solid transparent;
@@ -343,37 +353,49 @@ export default {
   position: absolute;
   pointer-events: none;
 }
+
 .ol-popup:after {
   border-top-color: white;
   border-width: 10px;
   left: 48px;
   margin-left: -10px;
 }
+
 .ol-popup:before {
   border-top-color: #cccccc;
   border-width: 11px;
   left: 48px;
   margin-left: -11px;
 }
-.ol-popup-closer {
-  text-decoration: none;
-  position: absolute;
-  top: 2px;
-  right: 8px;
-}
 .ol-popup-closer:after {
   content: "✖";
 }
-.btn-popup {
-  height: auto;
-  width: auto;
-  border: 1px solid hsl(0, 0%, 80%);
-  border-radius: 5px;
-  text-align: left;
-  padding-left: 3px;
-  padding-right: 3px;
-  &:hover {
-    box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
+.btns-control-popup {
+  position: relative;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  .btn-popup-main {
+    height: auto;
+    width: auto;
+    border: 1px solid hsl(0, 0%, 80%);
+    border-radius: 5px;
+    text-align: left;
+    word-break: normal;
+    padding-left: 3px;
+    padding-right: 3px;
+
+    &:hover {
+      box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
+    }
+  }
+
+  .ol-popup-closer {
+    position: relative;
+    text-decoration: none;
+    //top: 2px;
+    //right: 8px;
   }
 }
 </style>

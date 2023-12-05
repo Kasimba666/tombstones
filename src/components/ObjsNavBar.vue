@@ -5,7 +5,7 @@
             :class="{active: $route.path === '/stones'}"
             @click="$router.push('/stones')"
     >
-      Памятники эпиграфики Республики Татарстан XIV-XVIIв.
+      Памятники эпиграфики Республики Татарстан XIV-XVIIвв.
     </button>
 <!--    <button type="button"-->
 <!--            class="btn btn-outline-secondary"-->

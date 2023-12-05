@@ -20,6 +20,7 @@
                 :rows="rows"
                 :cols="cols"
                 :currentRow="currentRow"
+                :listMode="listMode"
                 @clickRow="setCurrentFeatureFromObjsList"
             >
             </objs-list>
@@ -47,6 +48,7 @@ import ObjsList from "./ObjsList";
 import ObjDetails from "./ObjDetails";
 import ObjsFilters from "./ObjsFilters";
 import ObjsMap from "./ObjsMap";
+import {mapGetters} from "vuex";
 
 export default {
   components: {ObjsList, ObjDetails, ObjsFilters, ObjsMap},
@@ -60,6 +62,12 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({screen: "getScreen", screenBreakpoints: "getScreenBreakpoints"}),
+    listMode(){
+      console.log(this.screen.type);
+      return (this.screen.type === 'xs' || this.screen.type === 'sm') ? 'cards' : 'table'
+    },
+
     cols() {
       let tempCols = [];
       this.scheme.forEach((item) => {
