@@ -15,25 +15,33 @@
                           @onSetFiltersValues="onSetFiltersValues"
             >
             </objs-filters>
+            <objs-view-mode-panel v-if="!modeListAndTable"
+                :allViewModes = "viewModes"
+                :currrentViewMode = "currentViewMode"
+                @setViewMode="setViewMode"
+            >Выбор режима просмотра
 
-            <objs-list
-                :rows="rows"
-                :cols="cols"
-                :currentRow="currentRow"
-                :listMode="listMode"
-                @clickRow="setCurrentFeatureFromObjsList"
+            </objs-view-mode-panel>
+            <objs-list v-if="modeListAndTable || currentViewMode === 'list'"
+                       :rows="rows"
+                       :cols="cols"
+                       :currentRow="currentRow"
+                       :listMode="listMode"
+                       @clickRow="setCurrentFeatureFromObjsList"
             >
             </objs-list>
+
           </div>
         </div>
       </div>
       <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-        <div class="objs-map">
+        <div class="objs-map" v-if="modeListAndTable || currentViewMode === 'map'">
           <objs-map v-if="!!collectionFeaturesForMaps"
                     :collectionFeatures="collectionFeaturesForMaps"
                     :oneFeature="oneFeatureForMaps"
                     :scheme="scheme"
-                    @clickPoint="setCurrentFeatureFromObjsMap">
+                    @clickPoint="setCurrentFeatureFromObjsMap"
+                    >
           </objs-map>
         </div>
       </div>
@@ -45,13 +53,14 @@
 
 <script>
 import ObjsList from "./ObjsList";
-import ObjDetails from "./ObjDetails";
+import ObjDetails from "./ObjsDetails";
 import ObjsFilters from "./ObjsFilters";
 import ObjsMap from "./ObjsMap";
 import {mapGetters} from "vuex";
+import ObjsViewModePanel from "@/components/ObjsViewModePanel";
 
 export default {
-  components: {ObjsList, ObjDetails, ObjsFilters, ObjsMap},
+  components: {ObjsViewModePanel, ObjsList, ObjDetails, ObjsFilters, ObjsMap},
   props: {geojson: Object, imgs: Array, scheme: Array, filters: Array},
   emits: ['onSetFiltersValues'],
   data() {
@@ -59,11 +68,14 @@ export default {
       currentFeature: null,
       visibleFiltersAndList: true,
       visibleDetails: false,
+      viewModes: ['list', 'map'],
+      currentViewMode: 'list',
+
     }
   },
   computed: {
     ...mapGetters({screen: "getScreen", screenBreakpoints: "getScreenBreakpoints"}),
-    listMode(){
+    listMode() {
       console.log(this.screen.type);
       return (this.screen.type === 'xs' || this.screen.type === 'sm') ? 'cards' : 'table'
     },
@@ -80,20 +92,20 @@ export default {
 
     rows() {
       if (this.geojson === null) return null;
-        let tempRows = this.geojson.features.map((feature) => {
-          let tempProperties = {};
-          this.scheme.forEach((item) => {
-            if (item.inTable === 1) {
-              tempProperties[item.attrName] = feature.properties[item.attrName];
-            }
-          });
-          return tempProperties
+      let tempRows = this.geojson.features.map((feature) => {
+        let tempProperties = {};
+        this.scheme.forEach((item) => {
+          if (item.inTable === 1) {
+            tempProperties[item.attrName] = feature.properties[item.attrName];
+          }
         });
-        return tempRows.sort((a, b) => a['name'].localeCompare(b['name']));
+        return tempProperties
+      });
+      return tempRows.sort((a, b) => a['name'].localeCompare(b['name']));
 
     },
-    currentRow(){
-      if(this.currentFeature === null) return null;
+    currentRow() {
+      if (this.currentFeature === null) return null;
       let tempProperties = {};
       this.scheme.forEach((item) => {
         if (item.inTable === 1) {
@@ -130,12 +142,12 @@ export default {
     },
     oneFeatureForMaps() {
       if (!!this.currentFeature) {
-          let newProperties = {};
-          this.scheme.forEach((item) => {
-            if (item.inMap === 1) {
-              newProperties[item.attrName] = this.currentFeature.features[0].properties[item.attrName];
-            }
-          });
+        let newProperties = {};
+        this.scheme.forEach((item) => {
+          if (item.inMap === 1) {
+            newProperties[item.attrName] = this.currentFeature.features[0].properties[item.attrName];
+          }
+        });
         return {
           type: this.currentFeature.type,
           name: this.currentFeature.name,
@@ -171,10 +183,16 @@ export default {
         }
       }
     },
+    modeListAndTable() {
+      return (this.screen.type != 'xs' && this.screen.type != 'sm')
+    },
   },
   methods: {
+    init() {
+      // this.currentViewMode = (this.screen.type === 'xs' || this.screen.type === 'sm') ? 'list' : 'all';
+    },
     setCurrentFeatureFromObjsMap(point) {
-      // установить текущий на основе выбранного в картах
+      // установить текущий объект на основе выбранного в картах
       if (!!this.geojson && !!point) {
         this.currentFeature = {
           type: this.geojson.type,
@@ -213,7 +231,7 @@ export default {
       this.visibleDetails = true
       this.visibleFiltersAndList = false;
     },
-     closeDetails() {
+    closeDetails() {
       this.visibleDetails = false;
       this.visibleFiltersAndList = true;
     },
@@ -229,8 +247,12 @@ export default {
         }
       }
     },
+    setViewMode(v) {
+      this.currentViewMode = v;
+    },
   },
   mounted() {
+    // this.init();
   },
 }
 </script>

@@ -8,12 +8,15 @@
         </div>
         <template v-if="!!cols && cols.length>0">
           <div class="obj-card-element"
-              :class="{title: title.attrName === 'name'}"
-              :style="{fontWeight: title.attrName === 'name' ? 'bold' : 'normal'}"
-              v-for="(title, i) of cols" :key="i">
-            {{ title.attrName === 'name' ? '' : title.titleName }}
-            {{ title.attrName === 'name' ? '' : ': ' }}
-            {{ arrToString(row[title.attrName]) }}
+               :class="{title: title.attrName === 'name'}"
+               :style="{fontWeight: title.attrName === 'name' ? 'bold' : 'normal'}"
+               v-for="(title, i) of cols" :key="i"
+          >
+            <div v-if="!!arrToString(row[title.attrName])">
+              {{ title.attrName === 'name' ? '' : title.titleName }}
+              {{ title.attrName === 'name' ? '' : ': ' }}
+              {{ arrToString(row[title.attrName]) }}
+            </div>
           </div>
         </template>
       </div>
