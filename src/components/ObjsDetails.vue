@@ -174,8 +174,6 @@ export default {
   gap: 5px;
   justify-content: flex-start;
   align-items: flex-start;
-
-
 }
 
 .collection-images {

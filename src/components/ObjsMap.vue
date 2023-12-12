@@ -1,6 +1,4 @@
 <template>
-  <!--  {{!!oneFeature ? oneFeature : ''}}-->
-  <!--  {{!!vectorLayer ? vectorLayer : ''}}-->
   <div id="map" class="map">
     <div id="info"></div>
   </div>

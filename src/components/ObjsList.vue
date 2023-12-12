@@ -6,19 +6,30 @@
            @click="setCurrentRow(row)">
         <div :class="{current: isCurrent(row)}">
         </div>
-        <template v-if="!!cols && cols.length>0">
-          <div class="obj-card-element"
-               :class="{title: title.attrName === 'name'}"
-               :style="{fontWeight: title.attrName === 'name' ? 'bold' : 'normal'}"
-               v-for="(title, i) of cols" :key="i"
-          >
-            <div v-if="!!arrToString(row[title.attrName])">
-              {{ title.attrName === 'name' ? '' : title.titleName }}
-              {{ title.attrName === 'name' ? '' : ': ' }}
-              {{ arrToString(row[title.attrName]) }}
+        <div class="obj-card-title">
+          {{ row.name }}
+        </div>
+        <div class="obj-card-body">
+          <template v-if="!!cols && cols.length>0">
+            <div class="obj-card-image"
+                 v-if="(!!imgCardTitle(row))"
+                 :style="{backgroundImage: `url(${imgCardTitle(row)})`}"
+            >
             </div>
-          </div>
-        </template>
+              <div class="obj-card-attributes">
+                <div class="obj-card-attribute"
+                     v-for="(title, i) of cols" :key="i"
+                >
+                  <template v-if="!!arrToString(row[title.attrName] && title.attrName != 'name')">
+                    {{ title.titleName }}
+                    {{ true ? ': ' : '' }}
+                    {{ arrToString(row[title.attrName]) }}
+                  </template>
+                </div>
+              </div>
+          </template>
+
+        </div>
       </div>
     </template>
 
@@ -58,6 +69,7 @@
 </template>
 
 <script>
+const smallImgPath = '300px/';
 export default {
   components: {},
   props: {
@@ -97,13 +109,20 @@ export default {
       this.$emit('clickRow', row);
     },
     isCurrent(row) {
-      return (!!this.currentRow && (JSON.stringify(row) === JSON.stringify(this.currentRow)));
+      if (!row || !this.cols ||!this.currentRow) return false;
+      let isEqual = true;
+      this.cols.forEach((v) => {if (this.currentRow[v.attrName] != row[v.attrName]) {isEqual = false}});
+      return isEqual;
     },
-    cardText(row) {
-      if (!!this.cols && this.cols.length > 0) return '';
-      let newCardText = '';
-      return newCardText;
+    imgCardTitle(row) {
+      if (!row || row === null) return null;
+        if (!!row['img']) {
+          let img = row['img'];
+          return require('@/assets/img/' + img['path'] + '/' + smallImgPath + img['filename']);
+        } else return null;
+
     },
+
   },
   mounted() {
   },
@@ -222,6 +241,50 @@ export default {
     flex: 1 1 auto;
     border: 1px solid gray;
     //padding: 3px;
+
+    .obj-card-title {
+      font-weight: bold;
+      background-color: hsla(180, 100%, 25%, 0.1);
+      padding: 3px;
+    }
+
+    .obj-card-body {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 3px;
+
+      .obj-card-image {
+        flex: 1 1 auto;
+        width: 80px;
+        height: 120px;
+        //min-width: 10px;
+        //min-height: 20px;
+        background-color: white;
+        border-radius: 2px;
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+
+      }
+
+      .obj-card-attributes {
+        display: flex;
+        flex-flow: column wrap;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 3px;
+
+        obj-card-attribute {
+          //display: flex;
+          //flex-flow: column wrap;
+          //justify-content: flex-start;
+
+        }
+      }
+    }
+
     .obj-card-element {
       &.title {
         background-color: hsla(180, 100%, 25%, 0.1);

@@ -1,8 +1,8 @@
 <template>
   <div class="container-fluid">
     <div class="row">
-      <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-        <div class="main">
+      <div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+        <div class="objs-main">
           <obj-details :style="{display: visibleDetails ?'block':'none'}"
                        :details="details"
                        :imgs="imgs_details"
@@ -16,9 +16,9 @@
             >
             </objs-filters>
             <objs-view-mode-panel v-if="!modeListAndTable"
-                :allViewModes = "viewModes"
-                :currrentViewMode = "currentViewMode"
-                @setViewMode="setViewMode"
+                                  :allViewModes="viewModes"
+                                  :currrentViewMode="currentViewMode"
+                                  @setViewMode="setViewMode"
             >Выбор режима просмотра
 
             </objs-view-mode-panel>
@@ -34,14 +34,14 @@
           </div>
         </div>
       </div>
-      <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+      <div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
         <div class="objs-map" v-if="modeListAndTable || currentViewMode === 'map'">
           <objs-map v-if="!!collectionFeaturesForMaps"
                     :collectionFeatures="collectionFeaturesForMaps"
                     :oneFeature="oneFeatureForMaps"
                     :scheme="scheme"
                     @clickPoint="setCurrentFeatureFromObjsMap"
-                    >
+          >
           </objs-map>
         </div>
       </div>
@@ -76,7 +76,6 @@ export default {
   computed: {
     ...mapGetters({screen: "getScreen", screenBreakpoints: "getScreenBreakpoints"}),
     listMode() {
-      console.log(this.screen.type);
       return (this.screen.type === 'xs' || this.screen.type === 'sm') ? 'cards' : 'table'
     },
 
@@ -99,11 +98,19 @@ export default {
             tempProperties[item.attrName] = feature.properties[item.attrName];
           }
         });
+        //добавить картинку в виде объекта
+        tempProperties['img'] = this.imgs.filter((v) => {
+          if (v['category'].toString() === 'cards' && v['id'].toString() === feature.properties['id'].toString()) {
+            return v
+          }
+        })[0];
         return tempProperties
       });
       return tempRows.sort((a, b) => a['name'].localeCompare(b['name']));
 
     },
+
+
     currentRow() {
       if (this.currentFeature === null) return null;
       let tempProperties = {};
@@ -223,7 +230,7 @@ export default {
         this.currentFeature.features.push(this.geojson.features.filter((feature) => {
           let isEqual = true;
           Object.entries(row).forEach(([key, value]) => {
-            if (feature.properties[key] != value) isEqual = false;
+            if (key != 'img' && feature.properties[key] != value) isEqual = false;
           });
           if (isEqual) return feature;
         })[0]);
@@ -258,8 +265,11 @@ export default {
 </script>
 
 <style lang="scss">
-.main {
+
+.objs-main {
   //border: 1px solid black;
+  width: 100%;
+  height: auto;
 
   .filters-and-list {
     width: 100%;
@@ -290,7 +300,7 @@ export default {
 .objs-map {
   width: 100%;
   height: 80vh;
-  background-color: lightgrey;
+  //background-color: lightgrey;
 }
 
 </style>

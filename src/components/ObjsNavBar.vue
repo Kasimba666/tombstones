@@ -8,6 +8,13 @@
       Памятники эпиграфики Республики Татарстан XIV-XVIIвв.
     </button>
 <!--    <button type="button"-->
+<!--            class="btn btn-outline-secondary obj-button"-->
+<!--            :class="{active: $route.path === '/stones'}"-->
+<!--            @click="$router.push('/stones')"-->
+<!--    >-->
+<!--      Памятники эпиграфики Республики Татарстан XIV-XVIIвв.-->
+<!--    </button>-->
+<!--    <button type="button"-->
 <!--            class="btn btn-outline-secondary"-->
 <!--            :class="{active: $route.path === '/settlements'}"-->
 <!--            @click="$router.push('/settlements');"-->

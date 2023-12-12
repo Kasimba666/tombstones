@@ -64,6 +64,7 @@ export default {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-size: 0.9rem;
 }
 
 .app {
@@ -75,5 +76,6 @@ export default {
   top: 10px;
   font-size: 12px;
   color: black;
+  z-index: 10;
 }
 </style>
