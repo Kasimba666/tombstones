@@ -163,9 +163,7 @@ export default {
 
 //Tooltip
       const info = document.getElementById('info');
-
       let currentFeature;
-
       this.map.on('pointermove', function (evt) {
         if (evt.dragging) {
           info.style.visibility = 'hidden';
@@ -192,10 +190,6 @@ export default {
 
 
       });
-
-      // map.on('click', function (evt) {
-      //   displayFeatureInfo(evt.pixel, evt.originalEvent.target);
-      // });
       this.map.getTargetElement().addEventListener('pointerleave', function () {
         currentFeature = undefined;
         info.style.visibility = 'hidden';
@@ -238,14 +232,11 @@ export default {
             content_element.innerHTML = content;
             overlay.setPosition(coord);
           }
-          ;
-
         }
-        ;
       });//onclick
 //Pointer on hover
       this.map.on("pointermove", function (evt) {
-        var hit = this.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+        let hit = this.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
           return true;
         });
         if (hit) {
@@ -358,7 +349,6 @@ export default {
   left: 48px;
   margin-left: -10px;
 }
-
 .ol-popup:before {
   border-top-color: #cccccc;
   border-width: 11px;
@@ -368,6 +358,11 @@ export default {
 .ol-popup-closer:after {
   content: "✖";
 }
+.ol-popup-closer {
+  position: relative;
+  text-decoration: none;
+}
+
 .btns-control-popup {
   position: relative;
   display: flex;
@@ -389,11 +384,6 @@ export default {
     }
   }
 
-  .ol-popup-closer {
-    position: relative;
-    text-decoration: none;
-    //top: 2px;
-    //right: 8px;
-  }
+
 }
 </style>
