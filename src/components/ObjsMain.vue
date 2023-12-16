@@ -35,7 +35,7 @@
         </div>
       </div>
       <div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
-        <div class="objs-map" v-if="modeListAndTable || currentViewMode === 'map'">
+        <div class="objs-map" v-if="modeListAndTable || currentViewMode === 'map' || visibleDetails">
           <objs-map v-if="!!collectionFeaturesForMaps"
                     :collectionFeatures="collectionFeaturesForMaps"
                     :oneFeature="oneFeatureForMaps"
