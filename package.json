@@ -1,0 +1,24 @@
+{
+  "name": "tombstones",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@rollup/plugin-dsv": "^3.0.5",
+    "element-plus": "^2.8.3",
+    "sass": "^1.79.3",
+    "vue": "^3.4.37",
+    "vue-router": "^4.4.5",
+    "vue3-openlayers": "^11.2.0",
+    "vuex": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.2",
+    "vite": "^5.4.1"
+  }
+}
