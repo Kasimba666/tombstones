@@ -256,7 +256,7 @@ export default {
                 })[0].title + ': ' + value + '</h8>' + '<br>'
               }
             });
-
+            // console.log('content', content);
             if (content != '') {
               this.contentPopup = content;
               content_element.innerHTML = content;
