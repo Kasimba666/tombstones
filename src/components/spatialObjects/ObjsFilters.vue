@@ -155,7 +155,7 @@ export default {
   justify-content: start;
 
   &.heightLimited {
-    height: 280px;
+    height: 320px;
   };
 
   .filter-block {
