@@ -61,12 +61,15 @@ export default {
   padding: 0;
   box-sizing: border-box;
   font-family: apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  font-size: 0.87rem;
+  font-size: 0.85rem;
 
 }
 
 .app {
   padding: 5px;
+  background-image: url("/assets/img/background/2024_06_24_Komorguzya_1_front_ortho_id79_background_1_640px_bright.jpg");
+  background-repeat: repeat;
+  //background-size: 100% auto;
 }
 .screen-monitor {
   position: absolute;

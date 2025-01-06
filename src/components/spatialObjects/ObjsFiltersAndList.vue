@@ -203,6 +203,7 @@ export default {
   flex-flow: row nowrap;
   justify-content: space-between;
   gap: 5px;
+
   &.directionColumn {
     flex-direction: column;
   }

@@ -23,6 +23,7 @@ const routes = [
         path: '/about',
         component: PgAbout,
     },
+
 ]
 
 const router = createRouter({
