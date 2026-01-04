@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
 // import createPersistedState from 'vuex-persistedstate';
 // import fromFileJSON from "@/data/Epigraphy_2023_3857.json";
-import fromFileJSON from "@/data/Tatarstones_all_3857_2023_2024.json";
-import imagePaths from "@/data/images_tombstones_2023_2024.csv";
+import fromFileJSON from "@/data/Tatarstones_all_3857_2023_2024_2025.json";
+import imagePaths from "@/data/images_tombstones_2023_2024_2025.csv";
 // import imagePaths from "@/data/images_tombstones_2023.csv";
 // import fromFileBorder from "@/data/border_pgm_3857.json";
 // import imagePaths from "raw-loader!@/data/images_empty.csv";
