@@ -175,7 +175,7 @@ export default new Vuex.Store({
                 title: 'Персона',
                 inTable: 0,
                 colSize: 0,
-                inCards: 1,
+                inCards: 0,
                 inDetails: 1,
                 inMap: 1,
                 filterType: 'none',
