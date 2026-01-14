@@ -7,6 +7,7 @@ import ElementPlus from 'element-plus'
 import OpenLayersMap from "vue3-openlayers";
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import './styles/main.scss'
 
 const app = createApp(App);
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
