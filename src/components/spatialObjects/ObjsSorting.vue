@@ -69,9 +69,12 @@ export default {
     gap: 5px;
     padding: 3px;
 
+
     .label-placeholder {
-      width: 90px;
+      width: 70px;
       height: auto;
+      display: flex;
+      align-items: center;
     }
 
     .sorting-placeholder {
