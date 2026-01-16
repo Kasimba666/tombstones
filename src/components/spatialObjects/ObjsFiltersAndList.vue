@@ -32,6 +32,7 @@
       <ObjsSorting v-if="Object.keys(sortingValues).length>0"
           :sortingValues="sortingValues"
           :scheme="scheme"
+          :totalCount="totalCount"
           @onChangeSortingValues="onChangeSortingValues"
       />
       <el-radio-group style="margin-bottom: 5px"
@@ -134,6 +135,9 @@ export default {
     },
     modeShort() {
       return this.screen.type === 'xs' || this.screen.type === 'sm'
+    },
+    totalCount() {
+      return this.filteredGeojson ? this.filteredGeojson.features.length : 0;
     },
   },
   methods: {

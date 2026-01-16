@@ -170,7 +170,8 @@ export default {
       width: 90px;
       height: auto;
       text-align: left;
-      //margin-right: 10px;
+      display: flex;
+      align-items: center;
     }
 
     .filter-placeholder {

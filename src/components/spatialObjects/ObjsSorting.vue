@@ -24,6 +24,10 @@
       <el-radio-button label="по убыванию" value="desc" />
     </el-radio-group>
     </div>
+    <div class="count-block">
+      <span class="count-label">Всего записей:</span>
+      <span class="count-value">{{ totalCount }}</span>
+    </div>
   </div>
 </template>
 
@@ -35,6 +39,7 @@ export default {
   props: {
     sortingValues: Object,
     scheme: Array,
+    totalCount: Number,
   },
   emits: ['update:sortingValues', 'onChangeSortingValues'],
   data() {
@@ -59,16 +64,17 @@ export default {
   width: 100%;
   height: auto;
   padding: 5px;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: center;
 
   .sorting-block {
-    width: 100%;
-    //width: 270px;
     display: flex;
     flex-flow: row wrap;
     justify-content: start;
     gap: 5px;
     padding: 3px;
-
 
     .label-placeholder {
       width: 70px;
@@ -83,11 +89,18 @@ export default {
     }
   }
 
+  .count-block {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    color: hsl(180, 100%, 25%);
+  }
+
   select {
     background-color: hsl(180, 100%, 25%, 0.08);
     width: 100%;
     cursor: pointer;
   }
-
 }
 </style>
