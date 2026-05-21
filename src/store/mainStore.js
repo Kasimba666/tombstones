@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 // import createPersistedState from 'vuex-persistedstate';
 // import fromFileJSON from "@/data/Epigraphy_2023_3857.json";
-import fromFileJSON from "@/data/Tatarstones_all_3857_2023_2024_2025.json";
+import fromFileJSON from "@/data/Tatarstones_all_3857_2023_2024_2025_2026_3857.json";
 import imagePaths from "@/data/images_tombstones_2023_2024_2025.csv";
 // import imagePaths from "@/data/images_tombstones_2023.csv";
 // import fromFileBorder from "@/data/border_pgm_3857.json";
@@ -83,6 +83,18 @@ export default new Vuex.Store({
                 filterType: 'select',
                 parentValueFrom: null,
                 sortable: 0,
+            },
+            {
+                attrName: 'FONT',
+                title: 'Шрифт',
+                inTable: 1,
+                colSize: 1,
+                inCards: 1,
+                inDetails: 1,
+                inMap: 0,
+                filterType: 'select',
+                parentValueFrom: null,
+                sortable: 1,
             },
             {
                 attrName: 'sizes',
@@ -310,7 +322,19 @@ export default new Vuex.Store({
                 inCards: 1,
                 inDetails: 1,
                 inMap: 0,
-                filterType: 'input',
+                filterType: 'select',
+                parentValueFrom: null,
+                sortable: 0,
+            },
+            {
+                attrName: 'font',
+                title: 'Шрифт',
+                inTable: 1,
+                colSize: 1,
+                inCards: 1,
+                inDetails: 1,
+                inMap: 0,
+                filterType: 'select',
                 parentValueFrom: null,
                 sortable: 0,
             },
