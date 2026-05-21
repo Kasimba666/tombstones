@@ -85,7 +85,7 @@ export default new Vuex.Store({
                 sortable: 0,
             },
             {
-                attrName: 'FONT',
+                attrName: 'font',
                 title: 'Шрифт',
                 inTable: 1,
                 colSize: 1,
@@ -94,7 +94,7 @@ export default new Vuex.Store({
                 inMap: 0,
                 filterType: 'select',
                 parentValueFrom: null,
-                sortable: 1,
+                sortable: 0,
             },
             {
                 attrName: 'sizes',
@@ -317,18 +317,6 @@ export default new Vuex.Store({
             {
                 attrName: 'code',
                 title: 'Шифр',
-                inTable: 1,
-                colSize: 1,
-                inCards: 1,
-                inDetails: 1,
-                inMap: 0,
-                filterType: 'select',
-                parentValueFrom: null,
-                sortable: 0,
-            },
-            {
-                attrName: 'font',
-                title: 'Шрифт',
                 inTable: 1,
                 colSize: 1,
                 inCards: 1,
