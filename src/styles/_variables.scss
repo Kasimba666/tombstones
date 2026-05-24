@@ -1,0 +1,62 @@
+// =========================================
+// 1. FONTS
+// =========================================
+$font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+$font-size-xs: 11px;
+$font-size-sm: 12px;
+$font-size-base: 13px;
+$font-size-md: 14px;
+$font-size-lg: 16px;
+$font-size-xl: 20px;
+
+// =========================================
+// 2. SPACING
+// =========================================
+$space-xs: 2px;
+$space-sm: 4px;
+$space-md: 6px;
+$space-base: 8px;
+$space-lg: 12px;
+$space-xl: 16px;
+$space-2xl: 20px;
+$space-3xl: 24px;
+
+// =========================================
+// 3. BORDERS
+// =========================================
+$border-radius-sm: 2px;
+$border-radius-base: 4px;
+$border-radius-md: 6px;
+$border-radius-lg: 8px;
+$border-width: 1px;
+
+// =========================================
+// 4. SHADOWS
+// =========================================
+$shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.08);
+$shadow-base: 0 2px 8px hsla(0, 0%, 0%, 0.12);
+$shadow-lg: 0 4px 16px hsla(0, 0%, 0%, 0.15);
+$shadow-xl: 0 8px 24px hsla(0, 0%, 0%, 0.2);
+
+// =========================================
+// 5. LAYOUT
+// =========================================
+$header-height: 32px;
+$footer-height: 24px;
+$sidebar-width: 320px;
+
+// =========================================
+// 6. TRANSITIONS
+// =========================================
+$transition-fast: 0.12s ease;
+$transition-base: 0.2s ease;
+$transition-slow: 0.3s ease;
+
+// =========================================
+// 7. Z-INDEXES
+// =========================================
+$z-dropdown: 100;
+$z-header: 200;
+$z-modal: 300;
+$z-notification: 400;
+$z-tooltip: 500;

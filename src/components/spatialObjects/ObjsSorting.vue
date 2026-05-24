@@ -28,10 +28,17 @@
       <span class="count-label">Всего записей:</span>
       <span class="count-value">{{ totalCount }}</span>
     </div>
+    <div class="export-block">
+      <el-button size="small" type="primary" @click="onExportXLSX">
+        <el-icon><Download /></el-icon>
+        Экспорт XLSX
+      </el-button>
+    </div>
   </div>
 </template>
 
 <script>
+import * as XLSX from 'xlsx';
 
 export default {
   name: 'ObjsSorting',
@@ -40,6 +47,8 @@ export default {
     sortingValues: Object,
     scheme: Array,
     totalCount: Number,
+    rows: Array,
+    cols: Array,
   },
   emits: ['update:sortingValues', 'onChangeSortingValues'],
   data() {
@@ -52,6 +61,64 @@ export default {
     onChangeSortingValues() {
       this.$emit('update:sortingValues');
       this.$emit('onChangeSortingValues');
+    },
+    onExportXLSX() {
+      if (!this.rows || this.rows.length === 0) {
+        this.$message?.warning?.('Нет данных для экспорта');
+        return;
+      }
+      // Build header row from cols
+      const headers = this.cols.map(c => c.titleName);
+      // Add coordinate columns
+      headers.push('Долгота (Lon)');
+      headers.push('Широта (Lat)');
+
+      // Build data rows
+      const data = this.rows.map(row => {
+        const rowData = this.cols.map(c => {
+          let val = row[c.attrName];
+          // Handle arrays
+          if (Array.isArray(val)) {
+            return val.join(', ');
+          }
+          return val ?? '';
+        });
+        // Add coordinates if present
+        let lon = '';
+        let lat = '';
+        if (row._coordinates && row._coordinates.length >= 2) {
+          lon = row._coordinates[0];
+          lat = row._coordinates[1];
+        }
+        rowData.push(lon);
+        rowData.push(lat);
+        return rowData;
+      });
+
+      // Create workbook
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Объекты');
+
+      // Auto-size columns
+      const colWidths = headers.map((h, i) => {
+        let maxLen = h.length;
+        data.forEach(row => {
+          const cellLen = String(row[i] ?? '').length;
+          if (cellLen > maxLen) maxLen = cellLen;
+        });
+        return { wch: Math.min(maxLen + 2, 50) };
+      });
+      ws['!cols'] = colWidths;
+
+      // Trigger download
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `objects_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(link.href);
     },
   },
   mounted() {

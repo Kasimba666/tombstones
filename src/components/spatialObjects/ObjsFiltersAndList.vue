@@ -33,6 +33,8 @@
           :sortingValues="sortingValues"
           :scheme="scheme"
           :totalCount="totalCount"
+          :rows="rows"
+          :cols="cols"
           @onChangeSortingValues="onChangeSortingValues"
       />
       <el-radio-group style="margin-bottom: 5px"
@@ -123,6 +125,10 @@ export default {
           }
         });
         tempProperties['imgs'] = this.filteredImagesCards.filter((v) => '' + v['id'] === '' + feature.properties['id'])[0]?.img
+        // Include coordinates from geometry
+        if (feature.geometry && feature.geometry.type === 'Point') {
+          tempProperties['_coordinates'] = feature.geometry.coordinates;
+        }
         return tempProperties
       });
       return tempRows;
