@@ -1,5 +1,13 @@
 <template>
   <div class="ObjsDetails" :class="{directionColumn: modeShort}">
+    <!-- Loading Spinner -->
+    <div v-if="exporting" class="export-spinner-overlay">
+      <div class="export-spinner-content">
+        <el-icon class="spinner-icon" :size="48"><Loading /></el-icon>
+        <span>Формирование карточки объекта...</span>
+      </div>
+    </div>
+
     <div class="details">
       <div class="details-actions">
         <el-button
@@ -14,10 +22,11 @@
           size="small"
           type="success"
           plain
-          @click="onExportWord"
+          :disabled="exporting"
+          @click="onExportPdf"
         >
           <el-icon><Download /></el-icon>
-          Экспорт Word
+          Карточка объекта (PDF)
         </el-button>
       </div>
 
@@ -92,8 +101,8 @@
 import {mapGetters, mapMutations, mapState} from "vuex";
 import ObjsMap from "@/components/spatialObjects/ObjsMap.vue";
 import {useScreen} from "@/composables/useScreen.js";
-import {Document, Packer, Paragraph, TextRun, ImageRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeadingLevel} from 'docx';
-import {saveAs} from 'file-saver';
+import {jsPDF} from 'jspdf';
+import {NotoSansRegularBase64, NotoSansBoldBase64} from '@/services/fontData.js';
 
 export default {
   name: 'ObjsDetails',
@@ -162,10 +171,7 @@ export default {
       this.$router.push({name: 'ObjsDetails', params: {id: this.currentID}});
     },
     goBack() {
-      // let query={filters: JSON.stringify(this.URLQuery)};
-      // console.log('URLQueryJSON', this.URLQueryJSON);
       this.$router.push({name: 'ObjsFiltersAndList', query: this.getURLQueryJSON});
-      // this.$router.push({name: 'ObjsFiltersAndList', query: query});
     },
     async fetchImageAsBase64(url) {
       try {
@@ -185,200 +191,259 @@ export default {
         return null;
       }
     },
-    async onExportWord() {
+    getImageDimensions(base64, type) {
+      return new Promise((resolve, reject) => {
+        const mimeType = type === 'PNG' ? 'image/png' : type === 'WEBP' ? 'image/webp' : 'image/jpeg';
+        const dataUrl = `data:${mimeType};base64,${base64}`;
+        const img = new Image();
+        img.onload = () => {
+          resolve({width: img.naturalWidth, height: img.naturalHeight});
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+    },
+    async onExportPdf() {
       if (this.exporting) return;
       this.exporting = true;
 
       try {
-        const children = [];
-
-        // Title
-        children.push(new Paragraph({
-          children: [new TextRun({
-            text: 'Паспорт объекта',
-            bold: true,
-            size: 48,
-            color: '1F4E79',
-          })],
-          alignment: AlignmentType.CENTER,
-          spacing: {after: 400},
-        }));
-
-        // Object ID / Name subtitle
-        const nameDetail = this.details?.find(v => v.attrName === 'name');
         const idDetail = this.details?.find(v => v.attrName === 'id');
+
+        // Register NotoSans font for Cyrillic support
+        const doc = new jsPDF('p', 'mm', 'a4');
+        doc.addFileToVFS('NotoSans-Regular.ttf', NotoSansRegularBase64);
+        doc.addFileToVFS('NotoSans-Bold.ttf', NotoSansBoldBase64);
+        doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+        doc.addFont('NotoSans-Bold.ttf', 'NotoSans', 'bold');
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        const contentWidth = pageWidth - margin * 2;
+        let y = margin;
+
+        // --- Helper: check if we need a new page ---
+        const checkPage = (neededSpace) => {
+          if (y + neededSpace > pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+          }
+        };
+
+        // --- Title: "Карточка объекта" ---
+        doc.setFontSize(18);
+        doc.setFont('NotoSans', 'bold');
+        doc.setTextColor(31, 78, 121);
+        doc.text('Карточка объекта', pageWidth / 2, y, {align: 'center'});
+        y += 10;
+
+        // --- Object name ---
+        const nameDetail = this.details?.find(v => v.attrName === 'name');
         const titleText = nameDetail?.value || `Объект #${idDetail?.value || ''}`;
-        children.push(new Paragraph({
-          children: [new TextRun({
-            text: titleText,
-            bold: true,
-            size: 36,
-            color: '2E75B6',
-          })],
-          alignment: AlignmentType.CENTER,
-          spacing: {after: 200},
-        }));
+        doc.setFontSize(14);
+        doc.setFont('NotoSans', 'bold');
+        doc.setTextColor(46, 117, 182);
+        doc.text(titleText, pageWidth / 2, y, {align: 'center'});
+        y += 8;
 
-        // Separator
-        children.push(new Paragraph({
-          children: [new TextRun({
-            text: '───────────────────────────────────────',
-            size: 20,
-            color: 'AAAAAA',
-          })],
-          alignment: AlignmentType.CENTER,
-          spacing: {after: 300},
-        }));
+        // --- Separator line ---
+        doc.setDrawColor(170, 170, 170);
+        doc.setLineWidth(0.3);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 6;
 
-        // Coordinates section
+        // --- Coordinates ---
         if (this.coordinatesStr) {
-          children.push(new Paragraph({
-            children: [
-              new TextRun({ text: 'Координаты', bold: true, size: 28, color: '1F4E79' }),
-            ],
-            spacing: {after: 100},
-          }));
-          children.push(new Paragraph({
-            children: [new TextRun({ text: this.coordinatesStr, size: 24 })],
-            spacing: {after: 300},
-          }));
+          checkPage(12);
+          doc.setFontSize(11);
+          doc.setFont('NotoSans', 'bold');
+          doc.setTextColor(31, 78, 121);
+          doc.text('Координаты', margin, y);
+          y += 5;
+          doc.setFont('NotoSans', 'normal');
+          doc.setTextColor(0, 0, 0);
+          doc.setFontSize(10);
+          doc.text(this.coordinatesStr, margin, y);
+          y += 7;
         }
 
-        // Properties table
+        // --- Properties table ---
         if (this.details && this.details.length > 0) {
-          children.push(new Paragraph({
-            children: [
-              new TextRun({ text: 'Атрибуты', bold: true, size: 28, color: '1F4E79' }),
-            ],
-            spacing: {after: 100},
-          }));
+          checkPage(14);
+          doc.setFontSize(11);
+          doc.setFont('NotoSans', 'bold');
+          doc.setTextColor(31, 78, 121);
+          doc.text('Атрибуты', margin, y);
+          y += 5;
 
-          const tableRows = [
-            new TableRow({
-              tableHeader: true,
-              children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Свойство', bold: true, size: 22 })] })], width: { size: 3000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Значение', bold: true, size: 22 })] })], width: { size: 8000, type: WidthType.DXA } }),
-              ],
-            }),
+          // Draw table header
+          const col1X = margin;
+          const col2X = margin + 55;
+          const rowH = 5.5;
+
+          doc.setFontSize(9);
+          doc.setFont('NotoSans', 'bold');
+          doc.setTextColor(255, 255, 255);
+          doc.setFillColor(31, 78, 121);
+          doc.rect(col1X, y - 4, 55, rowH, 'F');
+          doc.rect(col2X, y - 4, contentWidth - 55, rowH, 'F');
+          doc.text('Свойство', col1X + 2, y);
+          doc.text('Значение', col2X + 2, y);
+          y += rowH;
+
+          doc.setFont('NotoSans', 'normal');
+          doc.setTextColor(0, 0, 0);
+
+          const fillColors = [
+            [245, 245, 245],
+            [255, 255, 255],
           ];
 
-          this.details.forEach(detail => {
+          this.details.forEach((detail, idx) => {
             if (!!detail.value) {
-              tableRows.push(new TableRow({
-                children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: detail.titleName, size: 22 })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(detail.value), size: 22 })] })] }),
-                ],
-              }));
+              checkPage(rowH + 2);
+
+              const valStr = String(detail.value);
+              // Estimate lines needed for long text
+              const lineH = 4;
+              const maxChars = Math.floor((contentWidth - 55 - 4) / 2.2);
+              const lines = [];
+              for (let i = 0; i < valStr.length; i += maxChars) {
+                lines.push(valStr.substring(i, i + maxChars));
+              }
+              const neededH = Math.max(rowH, lines.length * lineH + 1);
+
+              checkPage(neededH + 1);
+
+              doc.setFillColor(...fillColors[idx % 2]);
+              doc.rect(col1X, y - 4, 55, neededH, 'F');
+              doc.rect(col2X, y - 4, contentWidth - 55, neededH, 'F');
+
+              doc.setFont('NotoSans', 'normal');
+              doc.setFontSize(9);
+              doc.setTextColor(0, 0, 0);
+              doc.text(detail.titleName, col1X + 2, y + 0.5);
+
+              doc.text(lines, col2X + 2, y + 0.5);
+
+              y += neededH;
             }
           });
 
-          children.push(new Table({
-            rows: tableRows,
-            width: { size: 100, type: WidthType.PERCENTAGE },
-          }));
-
-          children.push(new Paragraph({ spacing: {after: 300} }));
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.2);
+          doc.line(col1X, y, pageWidth - margin, y);
+          y += 4;
         }
 
-        // Images
+        // --- All images: one per page, no category titles ---
         if (this.imgs && this.imgs.length > 0) {
+          // Flatten all images from all categories
+          const allImgs = [];
           for (const category of this.imgs) {
-            children.push(new Paragraph({
-              children: [
-                new TextRun({
-                  text: category.categoryTitle || category.category,
-                  bold: true,
-                  size: 28,
-                  color: '1F4E79',
-                }),
-              ],
-              spacing: {after: 100},
-            }));
+            for (const img of category.imgs) {
+              allImgs.push(img);
+            }
+          }
 
-            // Limit images per category to avoid too large doc
-            const maxImages = 20;
-            const imgsToProcess = category.imgs.slice(0, maxImages);
+          const maxImages = 20;
+          const imgsToProcess = allImgs.slice(0, maxImages);
 
-            for (const img of imgsToProcess) {
-              try {
-                const imgData = await this.fetchImageAsBase64(img.large);
-                if (imgData) {
-                  const ext = img.large.match(/\.(png|jpe?g|gif|webp)/i)?.[1] || 'jpeg';
-                  const imageType = ext === 'jpg' ? 'jpeg' : ext;
+          for (const img of imgsToProcess) {
+            try {
+              const imgData = await this.fetchImageAsBase64(img.large);
+              if (imgData) {
+                // Determine image format for jsPDF
+                let imgFormat = 'JPEG';
+                if (imgData.type.includes('png')) imgFormat = 'PNG';
+                else if (imgData.type.includes('webp')) imgFormat = 'WEBP';
 
-                  children.push(new Paragraph({
-                    children: [
-                      new ImageRun({
-                        data: imgData.base64,
-                        transformation: {
-                          width: 400,
-                          height: 533,
-                        },
-                        type: imageType,
-                      }),
-                    ],
-                    alignment: AlignmentType.CENTER,
-                    spacing: {after: 50},
-                  }));
-
-                  if (img.label) {
-                    children.push(new Paragraph({
-                      children: [new TextRun({ text: img.label, size: 20, color: '666666', italics: true })],
-                      alignment: AlignmentType.CENTER,
-                      spacing: {after: 200},
-                    }));
-                  }
+                // Get actual image dimensions for proper aspect ratio
+                let naturalWidth, naturalHeight;
+                try {
+                  const dims = await this.getImageDimensions(imgData.base64, imgFormat);
+                  naturalWidth = dims.width;
+                  naturalHeight = dims.height;
+                } catch (e) {
+                  // Fallback if dimension detection fails
+                  naturalWidth = 4;
+                  naturalHeight = 3;
                 }
-              } catch (e) {
-                console.warn('Failed to embed image:', img.large, e);
-              }
-            }
 
-            if (category.imgs.length > maxImages) {
-              children.push(new Paragraph({
-                children: [new TextRun({ text: `... и ещё ${category.imgs.length - maxImages} изображений`, size: 20, color: '999999' })],
-                spacing: {after: 200},
-              }));
+                // New page for each image
+                doc.addPage();
+                y = margin;
+
+                // Calculate dimensions to fit within page while preserving aspect ratio
+                const maxImgWidth = contentWidth;
+                const maxImgHeight = pageHeight - margin * 2 - 15; // leave space for label
+
+                let imgWidth = maxImgWidth;
+                let imgHeight = (imgWidth * naturalHeight) / naturalWidth;
+
+                if (imgHeight > maxImgHeight) {
+                  imgHeight = maxImgHeight;
+                  imgWidth = (imgHeight * naturalWidth) / naturalHeight;
+                }
+
+                const xOffset = (pageWidth - imgWidth) / 2;
+                const imgY = y;
+
+                doc.addImage(
+                  imgData.base64,
+                  imgFormat,
+                  xOffset,
+                  imgY,
+                  imgWidth,
+                  imgHeight,
+                  undefined,
+                  'FAST'
+                );
+
+                // Label below image
+                if (img.label) {
+                  y = imgY + imgHeight + 5;
+                  checkPage(10);
+                  doc.setFontSize(9);
+                  doc.setFont('NotoSans', 'normal');
+                  doc.setTextColor(102, 102, 102);
+                  doc.text(img.label, pageWidth / 2, y, {align: 'center', maxWidth: contentWidth});
+                }
+              }
+            } catch (e) {
+              console.warn('Failed to embed image:', img.large, e);
             }
+          }
+
+          if (allImgs.length > maxImages) {
+            doc.addPage();
+            y = margin;
+            doc.setFontSize(10);
+            doc.setFont('NotoSans', 'normal');
+            doc.setTextColor(153, 153, 153);
+            doc.text(`... и ещё ${allImgs.length - maxImages} изображений`, pageWidth / 2, y, {align: 'center'});
           }
         }
 
-        // Footer
-        children.push(new Paragraph({
-          children: [new TextRun({
-            text: `Сформировано ${new Date().toLocaleDateString('ru-RU')}`,
-            size: 18,
-            color: 'AAAAAA',
-            italics: true,
-          })],
-          alignment: AlignmentType.CENTER,
-          spacing: {before: 400},
-        }));
+        // --- Footer on last page ---
+        checkPage(10);
+        doc.setFontSize(8);
+        doc.setFont('NotoSans', 'normal');
+        doc.setTextColor(170, 170, 170);
+        doc.text(
+          `Сформировано ${new Date().toLocaleDateString('ru-RU')}`,
+          pageWidth / 2,
+          pageHeight - margin,
+          {align: 'center'}
+        );
 
-        const doc = new Document({
-          sections: [{
-            properties: {
-              page: {
-                margin: {
-                  top: 1000,
-                  right: 1000,
-                  bottom: 1000,
-                  left: 1000,
-                },
-              },
-            },
-            children,
-          }],
-        });
-
-        const blob = await Packer.toBlob(doc);
+        // --- Save PDF ---
         const idStr = idDetail?.value || this.$route.params.id || 'unknown';
-        saveAs(blob, `passport_${idStr}.docx`);
+        doc.save(`kartochka_${idStr}.pdf`);
       } catch (e) {
-        console.error('Word export error:', e);
-        this.$message?.error?.('Ошибка при создании Word-документа');
+        console.error('PDF export error:', e);
+        this.$message?.error?.('Ошибка при создании PDF-документа');
       } finally {
         this.exporting = false;
       }
@@ -406,6 +471,41 @@ export default {
   gap: 5px;
   &.directionColumn {
     flex-direction: column;
+  }
+
+  .export-spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: hsla(0, 0%, 0%, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  .export-spinner-content {
+    background-color: hsl(0, 0%, 100%);
+    padding: 24px 32px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    color: hsl(210, 50%, 30%);
+    box-shadow: 0 4px 20px hsla(0, 0%, 0%, 0.2);
+
+    .spinner-icon {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 
   .details-actions {
