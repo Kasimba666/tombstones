@@ -10,9 +10,7 @@
   },
   "dependencies": {
     "@rollup/plugin-dsv": "^3.0.5",
-    "docx": "^9.6.1",
     "element-plus": "^2.8.3",
-    "file-saver": "^2.0.5",
     "jspdf": "^4.2.1",
     "sass": "^1.79.3",
     "vue": "^3.4.37",
