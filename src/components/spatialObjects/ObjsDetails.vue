@@ -253,44 +253,11 @@ export default {
         doc.line(margin, y, pageWidth - margin, y);
         y += 6;
 
-        // --- Coordinates ---
-        if (this.coordinatesStr) {
-          checkPage(12);
-          doc.setFontSize(11);
-          doc.setFont('NotoSans', 'bold');
-          doc.setTextColor(31, 78, 121);
-          doc.text('Координаты', margin, y);
-          y += 5;
-          doc.setFont('NotoSans', 'normal');
-          doc.setTextColor(0, 0, 0);
-          doc.setFontSize(10);
-          doc.text(this.coordinatesStr, margin, y);
-          y += 7;
-        }
-
-        // --- Properties table ---
+        // --- Properties table (including coordinates) ---
         if (this.details && this.details.length > 0) {
-          checkPage(14);
-          doc.setFontSize(11);
-          doc.setFont('NotoSans', 'bold');
-          doc.setTextColor(31, 78, 121);
-          doc.text('Атрибуты', margin, y);
-          y += 5;
-
-          // Draw table header
           const col1X = margin;
           const col2X = margin + 55;
           const rowH = 5.5;
-
-          doc.setFontSize(9);
-          doc.setFont('NotoSans', 'bold');
-          doc.setTextColor(255, 255, 255);
-          doc.setFillColor(31, 78, 121);
-          doc.rect(col1X, y - 4, 55, rowH, 'F');
-          doc.rect(col2X, y - 4, contentWidth - 55, rowH, 'F');
-          doc.text('Свойство', col1X + 2, y);
-          doc.text('Значение', col2X + 2, y);
-          y += rowH;
 
           doc.setFont('NotoSans', 'normal');
           doc.setTextColor(0, 0, 0);
@@ -299,6 +266,34 @@ export default {
             [245, 245, 245],
             [255, 255, 255],
           ];
+
+          let rowIdx = 0;
+
+          // Coordinates first row
+          if (this.coordinates) {
+            checkPage(rowH + 2);
+            const coordStr = `Долгота: ${this.coordinates[0]}, Широта: ${this.coordinates[1]}`;
+            const valStr = String(coordStr);
+            const lineH = 4;
+            const maxChars = Math.floor((contentWidth - 55 - 4) / 2.2);
+            const lines = [];
+            for (let i = 0; i < valStr.length; i += maxChars) {
+              lines.push(valStr.substring(i, i + maxChars));
+            }
+            const neededH = Math.max(rowH, lines.length * lineH + 1);
+            checkPage(neededH + 1);
+
+            doc.setFillColor(...fillColors[rowIdx % 2]);
+            doc.rect(col1X, y - 4, 55, neededH, 'F');
+            doc.rect(col2X, y - 4, contentWidth - 55, neededH, 'F');
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Координаты', col1X + 2, y + 0.5);
+            doc.text(lines, col2X + 2, y + 0.5);
+            y += neededH;
+            rowIdx++;
+          }
 
           this.details.forEach((detail, idx) => {
             if (!!detail.value) {
