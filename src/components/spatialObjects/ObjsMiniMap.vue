@@ -7,7 +7,7 @@
 <script>
 import Map from 'ol/Map.js';
 import View from 'ol/View.js';
-import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style.js';
+import {Circle as CircleStyle, Fill, Stroke, Style, Text} from 'ol/style.js';
 import {OSM, Vector as VectorSource} from 'ol/source.js';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
@@ -23,6 +23,10 @@ export default {
     featureGeojson: {
       type: Object,
       default: null,
+    },
+    pointName: {
+      type: String,
+      default: '',
     },
   },
   data() {
@@ -47,6 +51,17 @@ export default {
     },
     vectorLayerOne() {
       if (!!this.oneFeature) {
+        const textStyle = this.pointName ? new Text({
+          text: this.pointName,
+          font: 'bold 16px NotoSans, sans-serif',
+          fill: new Fill({color: 'rgba(0, 0, 0, 0.95)'}),
+          stroke: new Stroke({color: 'rgba(255, 255, 255, 0.9)', width: 4}),
+          offsetY: -24,
+          offsetX: 0,
+          textAlign: 'center',
+          textBaseline: 'bottom',
+        }) : undefined;
+
         return new VectorLayer({
           source: new VectorSource({
             features: new GeoJSON().readFeatures(this.oneFeature, {}),
@@ -54,10 +69,11 @@ export default {
           name: 'mini-one',
           style: new Style({
             image: new CircleStyle({
-              radius: 7,
-              fill: new Fill({color: 'rgba(220, 50, 50, 0.9)'}),
-              stroke: new Stroke({color: '#fff', width: 2}),
+              radius: 8,
+              fill: new Fill({color: 'red'}),
+              stroke: new Stroke({color: 'black', width: 2}),
             }),
+            text: textStyle,
           }),
           zIndex: 10,
         });
@@ -88,6 +104,18 @@ export default {
         this.map.addLayer(this.vectorLayerOne);
       }
     },
+    recreateLayer() {
+      if (!this.map) return;
+      // remove old one layer if exists
+      this.map.getLayers().forEach(layer => {
+        if (layer.get('name') === 'mini-one') {
+          this.map.removeLayer(layer);
+        }
+      });
+      if (this.vectorLayerOne) {
+        this.map.addLayer(this.vectorLayerOne);
+      }
+    },
   },
   mounted() {
     this.initMap();
@@ -97,15 +125,12 @@ export default {
       if (this.map && this.coords) {
         this.map.getView().setCenter(this.coords);
         this.map.getView().setZoom(14);
-        // remove old one layer if exists
-        this.map.getLayers().forEach(layer => {
-          if (layer.get('name') === 'mini-one') {
-            this.map.removeLayer(layer);
-          }
-        });
-        if (this.vectorLayerOne) {
-          this.map.addLayer(this.vectorLayerOne);
-        }
+        this.recreateLayer();
+      }
+    },
+    pointName() {
+      if (this.map && this.coords) {
+        this.recreateLayer();
       }
     },
   },
@@ -116,10 +141,8 @@ export default {
 .ObjsMiniMap {
   position: relative;
   width: 100%;
-  height: 240px;
-  border-radius: 5px;
+  height: 100%;
   overflow: hidden;
-  border: 2px solid hsla(0, 0%, 50%, 0.2);
 
   .mini-map-container {
     width: 100%;

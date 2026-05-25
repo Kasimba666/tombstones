@@ -100,6 +100,7 @@
           ref="exportMiniMap"
           :coords="coordinates"
           :featureGeojson="geojson"
+          :pointName="pointName"
       />
     </div>
 
@@ -156,6 +157,10 @@ export default {
         return findedFeature.geometry.coordinates;
       }
       return null;
+    },
+    pointName() {
+      const nameDetail = this.details?.find(v => v.attrName === 'name');
+      return nameDetail?.value || '';
     },
     coordinatesStr() {
       if (!this.coordinates) return null;
@@ -361,47 +366,44 @@ export default {
           y += 4;
         }
 
-        // --- Step 4: Mini-map image ---
+        // --- Step 4: Mini-map image (portrait A4, full page) ---
         if (this.coordinates) {
           await this.setExportStatus(25, 'Захват мини-карты...');
 
-          // Wait for hidden map to finish rendering
-          await new Promise(resolve => setTimeout(resolve, 300));
+          const miniMapWrapper = this.$el?.querySelector('.mini-map-export-wrapper');
+          const miniMapRef = this.$refs.exportMiniMap;
 
-          try {
-            const miniMapRef = this.$refs.exportMiniMap;
-            if (miniMapRef && miniMapRef.map) {
+          if (miniMapWrapper && miniMapRef && miniMapRef.map) {
+            // Temporarily move wrapper on-screen so OSM tiles render
+            const origLeft = miniMapWrapper.style.left;
+            miniMapWrapper.style.left = '0';
+            miniMapWrapper.style.top = '0';
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            try {
               const olMap = miniMapRef.map;
               const canvasEl = olMap.getTargetElement().querySelector('canvas');
-              if (canvasEl) {
+              if (canvasEl && canvasEl.width > 0) {
                 const mapBase64 = canvasEl.toDataURL('image/png');
+                const cw = canvasEl.width;
+                const ch = canvasEl.height;
 
-                doc.addPage();
-                y = margin;
+                // Portrait A4 page: 210 x 297 mm — map fills entire page
+                doc.addPage('p', 'mm', 'a4');
+                const pPageW = doc.internal.pageSize.getWidth();   // 210
+                const pPageH = doc.internal.pageSize.getHeight();  // 297
 
-                doc.setFontSize(14);
-                doc.setFont('NotoSans', 'bold');
-                doc.setTextColor(31, 78, 121);
-                doc.text('Расположение на карте', pageWidth / 2, y, {align: 'center'});
-                y += 10;
-
-                const mapMaxWidth = contentWidth;
-                const mapMaxHeight = pageHeight - margin * 2 - y - 5;
-                const mapAspect = canvasEl.width / canvasEl.height;
-                let mapWidth = mapMaxWidth;
-                let mapHeight = mapWidth / mapAspect;
-                if (mapHeight > mapMaxHeight) {
-                  mapHeight = mapMaxHeight;
-                  mapWidth = mapHeight * mapAspect;
-                }
-
-                const mapX = (pageWidth - mapWidth) / 2;
-                doc.addImage(mapBase64, 'PNG', mapX, y, mapWidth, mapHeight);
-                y += mapHeight + 8;
+                // Stretch canvas to fill exactly the page, cropping if needed
+                // Canvas aspect: 708/1000 ≈ 0.708, A4: 210/297 ≈ 0.707 — near identical
+                doc.addImage(mapBase64, 'PNG', 0, 0, pPageW, pPageH, undefined, 'FAST');
               }
+            } catch (e) {
+              console.warn('Failed to capture mini-map for PDF:', e);
+            } finally {
+              // Move wrapper back off-screen
+              miniMapWrapper.style.left = origLeft || '-10000px';
             }
-          } catch (e) {
-            console.warn('Failed to capture mini-map for PDF:', e);
           }
         }
 
@@ -724,14 +726,11 @@ export default {
   }
 
   .mini-map-export-wrapper {
-    position: absolute;
-    left: -9999px;
+    position: fixed;
+    left: -10000px;
     top: 0;
-    width: 500px;
-    height: 350px;
-    z-index: -1;
-    opacity: 0;
-    pointer-events: none;
+    width: 708px;
+    height: 1000px;
   }
 
   .map {
