@@ -93,6 +93,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Hidden mini-map for PDF export only -->
+    <div class="mini-map-export-wrapper" v-if="coordinates">
+      <ObjsMiniMap
+          ref="exportMiniMap"
+          :coords="coordinates"
+          :featureGeojson="geojson"
+      />
+    </div>
+
     <div class="map">
       <ObjsMap
           :collectionFeatures="collectionFeaturesForMaps"
@@ -107,13 +117,14 @@
 <script>
 import {mapGetters, mapMutations, mapState} from "vuex";
 import ObjsMap from "@/components/spatialObjects/ObjsMap.vue";
+import ObjsMiniMap from "@/components/spatialObjects/ObjsMiniMap.vue";
 import {useScreen} from "@/composables/useScreen.js";
 import {jsPDF} from 'jspdf';
 import {NotoSansRegularBase64, NotoSansBoldBase64} from '@/services/fontData.js';
 
 export default {
   name: 'ObjsDetails',
-  components: {ObjsMap},
+  components: {ObjsMap, ObjsMiniMap},
   props: [],
   data() {
     return {
@@ -350,7 +361,51 @@ export default {
           y += 4;
         }
 
-        // --- Step 4: Images ---
+        // --- Step 4: Mini-map image ---
+        if (this.coordinates) {
+          await this.setExportStatus(25, 'Захват мини-карты...');
+
+          // Wait for hidden map to finish rendering
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          try {
+            const miniMapRef = this.$refs.exportMiniMap;
+            if (miniMapRef && miniMapRef.map) {
+              const olMap = miniMapRef.map;
+              const canvasEl = olMap.getTargetElement().querySelector('canvas');
+              if (canvasEl) {
+                const mapBase64 = canvasEl.toDataURL('image/png');
+
+                doc.addPage();
+                y = margin;
+
+                doc.setFontSize(14);
+                doc.setFont('NotoSans', 'bold');
+                doc.setTextColor(31, 78, 121);
+                doc.text('Расположение на карте', pageWidth / 2, y, {align: 'center'});
+                y += 10;
+
+                const mapMaxWidth = contentWidth;
+                const mapMaxHeight = pageHeight - margin * 2 - y - 5;
+                const mapAspect = canvasEl.width / canvasEl.height;
+                let mapWidth = mapMaxWidth;
+                let mapHeight = mapWidth / mapAspect;
+                if (mapHeight > mapMaxHeight) {
+                  mapHeight = mapMaxHeight;
+                  mapWidth = mapHeight * mapAspect;
+                }
+
+                const mapX = (pageWidth - mapWidth) / 2;
+                doc.addImage(mapBase64, 'PNG', mapX, y, mapWidth, mapHeight);
+                y += mapHeight + 8;
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to capture mini-map for PDF:', e);
+          }
+        }
+
+        // --- Step 5: Images ---
         if (this.imgs && this.imgs.length > 0) {
           const allImgs = [];
           for (const category of this.imgs) {
@@ -446,7 +501,7 @@ export default {
           }
         }
 
-        // --- Step 5: Finalize ---
+        // --- Step 6: Finalize ---
         await this.setExportStatus(90, 'Завершение документа...');
 
         checkPage(10);
@@ -666,6 +721,17 @@ export default {
     .other-images {
 
     }
+  }
+
+  .mini-map-export-wrapper {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    width: 500px;
+    height: 350px;
+    z-index: -1;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .map {
