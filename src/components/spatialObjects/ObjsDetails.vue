@@ -18,22 +18,22 @@
     <div class="details">
       <div class="details-actions">
         <el-button
+            size="small"
+            type="success"
+            plain
+            :disabled="exporting"
+            @click="onExportPdf"
+        >
+          <el-icon><Download /></el-icon>
+          Экспорт PDF)
+        </el-button>
+        <el-button
           class="btn-close-new"
           type="primary"
           plain
           @click="goBack"
         >
           <el-icon style="font-size: 20px"><CloseBold/></el-icon>
-        </el-button>
-        <el-button
-          size="small"
-          type="success"
-          plain
-          :disabled="exporting"
-          @click="onExportPdf"
-        >
-          <el-icon><Download /></el-icon>
-          Карточка объекта (PDF)
         </el-button>
       </div>
 
