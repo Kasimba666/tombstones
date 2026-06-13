@@ -344,6 +344,7 @@ export default new Vuex.Store({
         filtersValues: [],
         sortingValues: {attrName: 'name', direction: 'asc'},
         currentID: '',
+        mapViewMode: 'default',
         // geofeatures: [],
     },
     getters: {
@@ -612,6 +613,9 @@ export default new Vuex.Store({
         },
         setCurrentID(state, v) {
             state.currentID = v;
+        },
+        setMapViewMode(state, v) {
+            state.mapViewMode = v;
         },
         setFromURLQuery(state, v) {
             let filters = JSON.parse(v.filters);
