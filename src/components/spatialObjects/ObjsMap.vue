@@ -27,7 +27,7 @@
     <div v-if="mapViewModeLocal === 'timeline'" class="map-mode-controls">
       <el-button size="small" @click="toggleTimelinePlay">{{ timelinePlaying ? '⏸' : '▶' }}</el-button>
       <el-slider v-model="timelineRange" range :min="timelineMin" :max="timelineMax" :step="1" size="small" style="width: 200px" />
-      <span class="ctrl-value">{{ timelineRange[0] }}–{{ timelineRange[1] }} ({{ timelineVisibleCount }})</span>
+      <span class="ctrl-value">{{ timelineRange[0] }}–{{ timelineRange[1] }} вв. ({{ timelineVisibleCount }})</span>
     </div>
     <div id="map" class="map"><div id="info"></div></div>
     <div id="popup" class="ol-popup">
@@ -128,15 +128,15 @@ export default {
       if (!this.geofeatures[0]) return null;
       return new VectorLayer({ source: new VectorSource({ features: new GeoJSON().readFeatures(this.geofeatures[0], {}) }), name: 'border', style: this.styleFunctionPolygon, zIndex: 1 });
     },
-    timelineYearValues() {
+    timelineCenturyValues() {
       if (!this.collectionFeatures) return [];
-      return this.collectionFeatures.features.map(f => parseInt(f.properties.year)).filter(y => !isNaN(y) && y > 0);
+      return this.collectionFeatures.features.map(f => parseInt(f.properties.date)).filter(c => !isNaN(c) && c > 0);
     },
-    timelineMin() { let v = this.timelineYearValues; return v.length ? Math.min(...v) : 1000; },
-    timelineMax() { let v = this.timelineYearValues; return v.length ? Math.max(...v) : 2025; },
+    timelineMin() { let v = this.timelineCenturyValues; return v.length ? Math.min(...v) : 10; },
+    timelineMax() { let v = this.timelineCenturyValues; return v.length ? Math.max(...v) : 21; },
     timelineVisibleCount() {
       if (!this.collectionFeatures) return 0;
-      return this.collectionFeatures.features.filter(f => { let y = parseInt(f.properties.year); return !isNaN(y) && y >= this.timelineRange[0] && y <= this.timelineRange[1]; }).length;
+      return this.collectionFeatures.features.filter(f => { let c = parseInt(f.properties.date); return !isNaN(c) && c >= this.timelineRange[0] && c <= this.timelineRange[1]; }).length;
     },
     heatmapGradient() {
       let preset = this.heatmapGradientPresets.find(g => g.key === this.heatmapGradientKey);
@@ -275,7 +275,7 @@ export default {
     initTimelineMode() {
       if (!this.map || !this.collectionFeatures) return;
       this.removeAllFeatureLayers();
-      let ff = this.collectionFeatures.features.filter(f => { let y = parseInt(f.properties.year); return !isNaN(y) && y >= this.timelineRange[0] && y <= this.timelineRange[1]; });
+      let ff = this.collectionFeatures.features.filter(f => { let c = parseInt(f.properties.date); return !isNaN(c) && c >= this.timelineRange[0] && c <= this.timelineRange[1]; });
       if (ff.length) {
         let gd = { type: this.collectionFeatures.type, name: this.collectionFeatures.name, crs: this.collectionFeatures.crs, features: ff };
         let src = new VectorSource({ features: new GeoJSON().readFeatures(gd, {}) });
@@ -293,9 +293,12 @@ export default {
       this.timelinePlaying = true;
       this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineMin]);
       this.timelineInterval = setInterval(() => {
-        if (this.timelineRange[1] >= this.timelineMax) { this.stopTimeline(); return; }
-        this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineRange[1] + 1]);
-      }, 300);
+        if (this.timelineRange[1] >= this.timelineMax) {
+          this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineMin]);
+        } else {
+          this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineRange[1] + 1]);
+        }
+      }, 600);
     },
     stopTimeline() { this.timelinePlaying = false; if (this.timelineInterval) { clearInterval(this.timelineInterval); this.timelineInterval = null; } },
   },

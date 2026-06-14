@@ -112,8 +112,8 @@ export default {
       if (!features) return null;
       if (this.mapViewMode === 'timeline') {
         features = features.filter(f => {
-          let y = parseInt(f.properties.year);
-          return !isNaN(y) && y >= this.timelineRange[0] && y <= this.timelineRange[1];
+          let c = parseInt(f.properties.date);
+          return !isNaN(c) && c >= this.timelineRange[0] && c <= this.timelineRange[1];
         });
       }
       let tempRows = features.map((feature) => {
