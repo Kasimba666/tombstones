@@ -341,7 +341,6 @@ export default {
   }
   .map-mode-toolbar { position: absolute; top: 4px; left: 4px; z-index: 20; background-color: hsla(0,0%,100%,0.9); border-radius: 4px; padding: 2px; box-shadow: 0 1px 4px hsla(0,0%,0%,0.15); }
   .map-mode-controls { position: absolute; top: 36px; left: 4px; z-index: 20; display: flex; flex-flow: row nowrap; align-items: center; gap: 4px; background-color: hsla(0,0%,100%,0.9); border-radius: 4px; padding: 2px 6px; box-shadow: 0 1px 4px hsla(0,0%,0%,0.15);
-    &.heatmap-controls { top: auto; bottom: 12px; }
     .ctrl-label { font-size: 11px; color: hsl(0,0%,30%); white-space: nowrap; }
     .ctrl-value { font-size: 11px; color: hsl(0,0%,30%); white-space: nowrap; }
   }
