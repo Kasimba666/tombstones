@@ -47,7 +47,10 @@ export default {
     return {
       map: null, closer: null, popupTitle: '', currentPointFeature: null,
       mapViewModeLocal: 'default',
-      heatmapRadius: 10,
+      savedViewCenter: null,
+      savedViewZoom: 9,
+    heatmapRadius: 10,
+    heatmapLayerInstance: null,
       timelinePlaying: false, timelineInterval: null,
     };
   },
@@ -123,21 +126,33 @@ export default {
       this.map = new Map({ layers: [new TileLayer({ source: new OSM() })], target: 'map', view: new View({ center: this.centerCollection, zoom: 9 }) });
       this.map.addControl(new ScaleLine({units: 'metric', bar: true}));
       this.map.getInteractions().forEach(i => { if (i instanceof DoubleClickZoom) this.map.removeInteraction(i); });
+      this.map.getView().on('change', () => {
+        this.savedViewCenter = this.map.getView().getCenter();
+        this.savedViewZoom = this.map.getView().getZoom();
+      });
+    },
+    restoreView() {
+      if (this.map && this.savedViewCenter) {
+        this.map.getView().setCenter(this.savedViewCenter);
+        this.map.getView().setZoom(this.savedViewZoom);
+      }
     },
     initPointer() {
+      const map = this.map;
       this.map.on('pointermove', function(evt) {
-        let hit = this.forEachFeatureAtPixel(evt.pixel, (f, l) => this.isInteractiveLayer(l));
-        this.getTargetElement().style.cursor = hit ? 'pointer' : '';
-      }.bind(this));
+        let hit = map.forEachFeatureAtPixel(evt.pixel, (f, l) => map.getLayers().getArray().indexOf(l) !== -1);
+        map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+      });
     },
     initTooltip() {
+      const map = this.map;
       const info = document.getElementById('info');
       let cur;
-      this.map.on('pointermove', function(evt) {
+      map.on('pointermove', function(evt) {
         if (evt.dragging) { info.style.visibility = 'hidden'; cur = undefined; return; }
-        const px = this.getEventPixel(evt.originalEvent);
+        const px = map.getEventPixel(evt.originalEvent);
         const feat = evt.originalEvent.target.closest('.ol-control') ? undefined
-          : this.forEachFeatureAtPixel(px, (f, l) => this.isInteractiveLayer(l) ? f : undefined);
+          : map.forEachFeatureAtPixel(px, (f, l) => f);
         if (feat) {
           info.style.left = 10 + px[0] + 'px'; info.style.top = px[1] + 'px';
           if (feat !== cur) { info.style.visibility = 'visible'; info.innerText = feat.get('name'); }
@@ -177,7 +192,11 @@ export default {
       this.map.on('dblclick', handler);
     },
     onSetCurrentPoint() { this.$emit('clickPoint', this.currentPointFeature.features[0].properties.id); },
-    removeByName(name) { this.map.getLayers().forEach(l => { if (l.get('name') === name) this.map.removeLayer(l); }); },
+    removeByName(name) {
+      if (!this.map) return;
+      let toRemove = this.map.getLayers().getArray().filter(l => l.get('name') === name);
+      toRemove.forEach(l => this.map.removeLayer(l));
+    },
     closePopup() { this.closer.onclick(); },
     addTransparentInteraction(z) {
       this.removeByName('collection');
@@ -190,7 +209,7 @@ export default {
       this.removeByName('collection');
       if (!this.collectionFeatures.features.map(v=>v.properties.id).includes(this.currentID)) this.removeByName('one');
       if (this.mapViewModeLocal !== 'heatmap') this.map.addLayer(this.vectorLayerCollection);
-      this.map.getView().setCenter(this.centerCollection);
+      this.restoreView();
     },
     addOneLayer() {
       this.closePopup();
@@ -198,12 +217,15 @@ export default {
       this.removeByName('one');
       if (this.mapViewModeLocal !== 'heatmap' && this.mapViewModeLocal !== 'timeline') {
         this.map.addLayer(this.vectorLayerOne);
-        this.map.getView().setCenter(this.centerOne);
+        this.restoreView();
       }
+    },
+    removeAllFeatureLayers() {
+      this.removeByName('heatmap'); this.removeByName('collection'); this.removeByName('one'); this.removeByName('timeline-features');
     },
     onModeChange(mode) {
       this.$store.commit('setMapViewMode', mode);
-      this.removeByName('heatmap'); this.removeByName('collection'); this.removeByName('one');
+      this.removeAllFeatureLayers();
       this.closePopup();
       if (mode === 'default') { this.addCollectionLayer(); this.addOneLayer(); }
       else if (mode === 'heatmap') this.initHeatmapMode();
@@ -211,24 +233,28 @@ export default {
     },
     initHeatmapMode() {
       if (!this.map || !this.collectionFeatures) return;
-      this.removeByName('heatmap');
-      if (this.heatmapLayer) { this.map.addLayer(this.heatmapLayer); this.map.getView().setCenter(this.centerCollection); }
+      this.removeAllFeatureLayers();
+      this.heatmapLayerInstance = this.heatmapLayer;
+      if (this.heatmapLayerInstance) { this.map.addLayer(this.heatmapLayerInstance); this.restoreView(); }
       this.addTransparentInteraction(5);
     },
     updateHeatmap() {
       if (this.mapViewModeLocal !== 'heatmap') return;
-      this.initHeatmapMode();
+      if (this.heatmapLayerInstance) {
+        this.heatmapLayerInstance.setRadius(this.heatmapRadius);
+        this.heatmapLayerInstance.setBlur(this.heatmapRadius * 0.75);
+      }
     },
     initTimelineMode() {
       if (!this.map || !this.collectionFeatures) return;
-      this.removeByName('collection'); this.removeByName('one'); this.removeByName('timeline-features');
+      this.removeAllFeatureLayers();
       let ff = this.collectionFeatures.features.filter(f => { let y = parseInt(f.properties.year); return !isNaN(y) && y >= this.timelineRange[0] && y <= this.timelineRange[1]; });
       if (ff.length) {
         let gd = { type: this.collectionFeatures.type, name: this.collectionFeatures.name, crs: this.collectionFeatures.crs, features: ff };
         let src = new VectorSource({ features: new GeoJSON().readFeatures(gd, {}) });
         this.map.addLayer(new VectorLayer({ source: src, name: 'timeline-features', style: this.styleFunctionCollection, zIndex: 5 }));
       }
-      this.map.getView().setCenter(this.centerCollection);
+      this.restoreView();
     },
     updateTimeline() {
       if (this.mapViewModeLocal !== 'timeline') return;
