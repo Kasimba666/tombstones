@@ -64,7 +64,7 @@ export default {
       heatmapRadius: 36,
       heatmapBlur: 75,
       heatmapIntensity: 1.5,
-      heatmapGradientKey: 'red-yellow',
+      heatmapGradientKey: 'classic',
       heatmapLayerInstance: null,
       heatmapGradientPresets: [
         { key: 'red-yellow', label: 'Красный → Жёлтый', css: 'linear-gradient(to right, #ff0000, #ffff00)', colors: ['rgba(255,0,0,1)', 'rgba(255,128,0,1)', 'rgba(255,255,0,1)'] },
@@ -146,7 +146,7 @@ export default {
       if (!this.collectionFeatures) return null;
       let src = new VectorSource({ features: new GeoJSON().readFeatures(this.collectionFeatures, {}) });
       let intensity = this.heatmapIntensity;
-      return new HeatmapLayer({ source: src, name: 'heatmap', blur: this.heatmapBlur, radius: this.heatmapRadius, gradient: this.heatmapGradient, weight: () => intensity, zIndex: 4 });
+      return new HeatmapLayer({ source: src, name: 'heatmap', blur: this.heatmapBlur, radius: this.heatmapRadius, gradient: this.heatmapGradient, weight: () => intensity, zIndex: 3 });
     },
   },
   methods: {
@@ -265,7 +265,8 @@ export default {
       this.removeAllFeatureLayers();
       this.heatmapLayerInstance = this.heatmapLayer;
       if (this.heatmapLayerInstance) { this.map.addLayer(this.heatmapLayerInstance); this.restoreView(); }
-      this.addTransparentInteraction(5);
+      this.removeByName('collection');
+      this.map.addLayer(new VectorLayer({ source: new VectorSource({ features: new GeoJSON().readFeatures(this.collectionFeatures, {}) }), name: 'collection', style: this.styleFunctionCollection, zIndex: 6 }));
     },
     updateHeatmap() {
       if (this.mapViewModeLocal !== 'heatmap') return;
