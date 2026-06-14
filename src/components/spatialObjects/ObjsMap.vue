@@ -7,6 +7,11 @@
         <el-radio-button label="Время" value="timeline" />
       </el-radio-group>
     </div>
+    <div v-if="mapViewModeLocal === 'heatmap'" class="map-mode-controls">
+      <span class="ctrl-label">Радиус:</span>
+      <el-slider v-model="heatmapRadius" :min="2" :max="50" :step="1" size="small" style="width: 150px" />
+      <span class="ctrl-value">{{ heatmapRadius }}</span>
+    </div>
     <div v-if="mapViewModeLocal === 'timeline'" class="map-mode-controls">
       <el-button size="small" @click="toggleTimelinePlay">{{ timelinePlaying ? '⏸' : '▶' }}</el-button>
       <el-slider v-model="timelineRange" range :min="timelineMin" :max="timelineMax" :step="1" size="small" style="width: 200px" />
@@ -42,6 +47,7 @@ export default {
     return {
       map: null, closer: null, popupTitle: '', currentPointFeature: null,
       mapViewModeLocal: 'default',
+      heatmapRadius: 10,
       timelinePlaying: false, timelineInterval: null,
     };
   },
@@ -108,7 +114,7 @@ export default {
     heatmapLayer() {
       if (!this.collectionFeatures) return null;
       let src = new VectorSource({ features: new GeoJSON().readFeatures(this.collectionFeatures, {}) });
-      return new HeatmapLayer({ source: src, name: 'heatmap', blur: 15, radius: 10, weight: () => 1, zIndex: 4 });
+      return new HeatmapLayer({ source: src, name: 'heatmap', blur: this.heatmapRadius * 0.75, radius: this.heatmapRadius, weight: () => 1, zIndex: 4 });
     },
   },
   methods: {
@@ -209,6 +215,10 @@ export default {
       if (this.heatmapLayer) { this.map.addLayer(this.heatmapLayer); this.map.getView().setCenter(this.centerCollection); }
       this.addTransparentInteraction(5);
     },
+    updateHeatmap() {
+      if (this.mapViewModeLocal !== 'heatmap') return;
+      this.initHeatmapMode();
+    },
     initTimelineMode() {
       if (!this.map || !this.collectionFeatures) return;
       this.removeByName('collection'); this.removeByName('one'); this.removeByName('timeline-features');
@@ -249,6 +259,7 @@ export default {
     },
     currentID() { if (this.mapViewModeLocal !== 'heatmap') this.addOneLayer(); },
     timelineRange() { this.updateTimeline(); },
+    heatmapRadius() { this.updateHeatmap(); },
   },
 };
 </script>
@@ -271,6 +282,7 @@ export default {
   }
   .map-mode-toolbar { position: absolute; top: 4px; left: 4px; z-index: 20; background-color: hsla(0,0%,100%,0.9); border-radius: 4px; padding: 2px; box-shadow: 0 1px 4px hsla(0,0%,0%,0.15); }
   .map-mode-controls { position: absolute; top: 36px; left: 4px; z-index: 20; display: flex; flex-flow: row nowrap; align-items: center; gap: 4px; background-color: hsla(0,0%,100%,0.9); border-radius: 4px; padding: 2px 6px; box-shadow: 0 1px 4px hsla(0,0%,0%,0.15);
+    .ctrl-label { font-size: 11px; color: hsl(0,0%,30%); white-space: nowrap; }
     .ctrl-value { font-size: 11px; color: hsl(0,0%,30%); white-space: nowrap; }
   }
 }
