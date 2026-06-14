@@ -345,6 +345,7 @@ export default new Vuex.Store({
         sortingValues: {attrName: 'name', direction: 'asc'},
         currentID: '',
         mapViewMode: 'default',
+        timelineRange: [1000, 2025],
         // geofeatures: [],
     },
     getters: {
@@ -616,6 +617,9 @@ export default new Vuex.Store({
         },
         setMapViewMode(state, v) {
             state.mapViewMode = v;
+        },
+        setTimelineRange(state, v) {
+            state.timelineRange = v;
         },
         setFromURLQuery(state, v) {
             let filters = JSON.parse(v.filters);

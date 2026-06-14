@@ -94,7 +94,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['filtersValues', 'sortingValues', 'currentID', 'scheme', 'imgs']),
+    ...mapState(['filtersValues', 'sortingValues', 'currentID', 'scheme', 'imgs', 'mapViewMode', 'timelineRange']),
     ...mapGetters(['filteredGeojson', 'filteredImagesCards', 'filters', 'getURLQueryJSON', 'currentFeature', 'oneFeatureForMaps', 'collectionFeaturesForMaps']),
     ...mapMutations(['setCurrentID', 'setFiltersValues', 'setSortingValues', 'setFromURLQuery']),
     ...mapActions(['initFiltersValues','clearFiltersValues' , 'initSortingValues']),
@@ -108,8 +108,15 @@ export default {
       return tempCols;
     },
     rows() {
-      if (!this.filteredGeojson || this.filteredGeojson.length > 0) return null;
-      let tempRows = this.filteredGeojson.features.map((feature) => {
+      let features = !!this.filteredGeojson && this.filteredGeojson.features ? this.filteredGeojson.features : null;
+      if (!features) return null;
+      if (this.mapViewMode === 'timeline') {
+        features = features.filter(f => {
+          let y = parseInt(f.properties.year);
+          return !isNaN(y) && y >= this.timelineRange[0] && y <= this.timelineRange[1];
+        });
+      }
+      let tempRows = features.map((feature) => {
         let tempProperties = {};
         this.scheme.forEach((item) => {
           if (item.inTable === 1) {

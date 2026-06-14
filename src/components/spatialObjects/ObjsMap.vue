@@ -41,7 +41,7 @@ export default {
   data() {
     return {
       map: null, closer: null, popupTitle: '', currentPointFeature: null,
-      mapViewModeLocal: 'default', timelineRange: [1000, 2025],
+      mapViewModeLocal: 'default',
       timelinePlaying: false, timelineInterval: null,
     };
   },
@@ -60,6 +60,10 @@ export default {
   },
   computed: {
     ...mapState(['geofeatures', 'mapViewMode']),
+    timelineRange: {
+      get() { return this.$store.state.timelineRange; },
+      set(v) { this.$store.commit('setTimelineRange', v); }
+    },
     bounds() {
       if (!!this.collectionFeatures && this.collectionFeatures.features.length > 0) {
         let coords = this.collectionFeatures.features.map(v => v.geometry.coordinates);
@@ -197,7 +201,7 @@ export default {
       this.closePopup();
       if (mode === 'default') { this.addCollectionLayer(); this.addOneLayer(); }
       else if (mode === 'heatmap') this.initHeatmapMode();
-      else if (mode === 'timeline') { this.timelineRange = [this.timelineMin, this.timelineMax]; this.initTimelineMode(); }
+      else if (mode === 'timeline') { this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineMax]); this.initTimelineMode(); }
     },
     initHeatmapMode() {
       if (!this.map || !this.collectionFeatures) return;
@@ -224,10 +228,10 @@ export default {
     toggleTimelinePlay() { this.timelinePlaying ? this.stopTimeline() : this.startTimeline(); },
     startTimeline() {
       this.timelinePlaying = true;
-      this.timelineRange = [this.timelineMin, this.timelineMin];
+      this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineMin]);
       this.timelineInterval = setInterval(() => {
         if (this.timelineRange[1] >= this.timelineMax) { this.stopTimeline(); return; }
-        this.timelineRange = [this.timelineMin, this.timelineRange[1] + 1];
+        this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineRange[1] + 1]);
       }, 300);
     },
     stopTimeline() { this.timelinePlaying = false; if (this.timelineInterval) { clearInterval(this.timelineInterval); this.timelineInterval = null; } },
@@ -241,7 +245,7 @@ export default {
     collectionFeatures() {
       if (this.mapViewModeLocal === 'default') this.addCollectionLayer();
       else if (this.mapViewModeLocal === 'heatmap') this.initHeatmapMode();
-      else if (this.mapViewModeLocal === 'timeline') { this.timelineRange = [this.timelineMin, this.timelineMax]; this.initTimelineMode(); }
+      else if (this.mapViewModeLocal === 'timeline') { this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineMax]); this.initTimelineMode(); }
     },
     currentID() { if (this.mapViewModeLocal !== 'heatmap') this.addOneLayer(); },
     timelineRange() { this.updateTimeline(); },
