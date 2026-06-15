@@ -1,5 +1,10 @@
 <template>
-  <div class="ObjsMap" v-show="!!collectionFeatures">
+  <div ref="obsmmap" :class="['ObjsMap', {'is-fullscreen': isMapFullscreen}]" v-show="!!collectionFeatures">
+    <el-tooltip :content="isMapFullscreen ? 'Выйти из полноэкранного режима' : 'Полноэкранный режим'" placement="right" :show-after="500">
+      <el-button class="fullscreen-btn" size="small" circle @click="toggleFullscreen">
+        {{ isMapFullscreen ? '✕' : '⛶' }}
+      </el-button>
+    </el-tooltip>
     <div class="map-mode-toolbar">
       <el-radio-group v-model="mapViewModeLocal" size="small" @change="onModeChange">
         <el-radio-button label="Карта" value="default" />
@@ -75,6 +80,7 @@ export default {
         { key: 'magma', label: 'Magma', css: 'linear-gradient(to right, #000004, #4a0e6b, #ed6925, #fcffa4)', colors: ['rgba(0,0,4,1)', 'rgba(74,14,107,1)', 'rgba(237,105,37,1)', 'rgba(252,255,164,1)'] },
         { key: 'fire', label: 'Огонь', css: 'linear-gradient(to right, #000000, #7a1208, #dd4400, #ff8c00, #ffff00)', colors: ['rgba(0,0,0,1)', 'rgba(122,18,8,1)', 'rgba(221,68,0,1)', 'rgba(255,140,0,1)', 'rgba(255,255,0,1)'] },
       ],
+      isMapFullscreen: false,
       timelinePlaying: false, timelineInterval: null,
     };
   },
@@ -300,6 +306,10 @@ export default {
         }
       }, 600);
     },
+    toggleFullscreen() {
+      this.isMapFullscreen = !this.isMapFullscreen;
+      if (this.map) { setTimeout(() => this.map.updateSize(), 100); }
+    },
     stopTimeline() { this.timelinePlaying = false; if (this.timelineInterval) { clearInterval(this.timelineInterval); this.timelineInterval = null; } },
   },
   mounted() {
@@ -347,5 +357,11 @@ export default {
   .gradient-option { display: flex; align-items: center; gap: 6px; }
   .gradient-preview { width: 90px; height: 12px; border-radius: 2px; border: 1px solid hsl(0,0%,80%); }
   .gradient-label { font-size: 12px; color: hsl(0,0%,15%); white-space: nowrap; }
+  .fullscreen-btn { position: absolute; top: 7px; left: 4px; z-index: 25; }
+  .ol-zoom { top: 32px !important; left: 5px !important; }
+  &.is-fullscreen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background: hsl(0,0%,100%);
+    .map { width: 100%; height: 100%; }
+  }
 }
 </style>
