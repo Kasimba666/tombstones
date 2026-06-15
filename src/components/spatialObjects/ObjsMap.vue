@@ -15,6 +15,7 @@
       <el-radio-group v-model="mapViewModeLocal" size="small" @change="onModeChange">
         <el-radio-button label="Карта" value="default" />
         <el-radio-button label="Тепло" value="heatmap" />
+        <el-radio-button label="Зоны" value="zones" />
         <el-radio-button label="Время" value="timeline" />
       </el-radio-group>
     </div>
@@ -34,6 +35,16 @@
       <span class="ctrl-label">I:</span>
       <el-slider v-model="heatmapIntensity" :min="0.1" :max="2.0" :step="0.1" size="small" style="width: 80px" />
       <span class="ctrl-value">{{ heatmapIntensity.toFixed(1) }}x</span>
+    </div>
+    <div v-if="mapViewModeLocal === 'zones'" class="map-mode-controls zone-controls">
+      <span class="ctrl-label">Радиус (м):</span>
+      <el-slider v-model="zoneRadius" :min="100" :max="10000" :step="100" size="small" style="width: 120px" />
+      <span class="ctrl-value">{{ zoneRadius }}м</span>
+      <el-checkbox v-model="zoneMerge" size="small" @change="updateZones">Объединить</el-checkbox>
+      <span class="ctrl-label">Заливка:</span>
+      <el-color-picker v-model="zoneFillColor" size="small" @change="updateZones" />
+      <span class="ctrl-label">Контур:</span>
+      <el-color-picker v-model="zoneStrokeColor" size="small" @change="updateZones" />
     </div>
     <div v-if="mapViewModeLocal === 'timeline'" class="map-mode-controls">
       <el-button size="small" @click="toggleTimelinePlay">{{ timelinePlaying ? '⏸' : '▶' }}</el-button>
@@ -55,13 +66,16 @@ import GeoJSON from 'ol/format/GeoJSON.js';
 import Map from 'ol/Map.js';
 import View from 'ol/View.js';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style.js';
+import {Circle as CircleGeometry} from 'ol/geom.js';
+import Feature from 'ol/Feature.js';
 import {OSM, Vector as VectorSource} from 'ol/source.js';
 import {Tile as TileLayer, Vector as VectorLayer, Heatmap as HeatmapLayer} from 'ol/layer.js';
 import Overlay from 'ol/Overlay.js';
 import {ScaleLine} from 'ol/control.js';
 import {DoubleClickZoom} from 'ol/interaction.js';
 import {mapState} from 'vuex';
-const LAYER_NAMES = ['collection', 'one', 'timeline-features'];
+import * as turf from '@turf/turf';
+const LAYER_NAMES = ['collection', 'one', 'timeline-features', 'zones-features'];
 export default {
   name: 'ObjsMap',
   props: ['scheme', 'collectionFeatures', 'currentID'],
@@ -88,6 +102,10 @@ export default {
       ],
       isMapFullscreen: false,
       timelinePlaying: false, timelineInterval: null,
+      zoneRadius: 5000,
+      zoneMerge: true,
+      zoneFillColor: 'rgba(57,139,57,0.3)',
+      zoneStrokeColor: 'rgba(40,105,40,0.8)',
     };
   },
   setup() {
@@ -249,20 +267,20 @@ export default {
       if (!this.map || !this.collectionFeatures) return;
       this.removeByName('collection');
       if (!this.collectionFeatures.features.map(v=>v.properties.id).includes(this.currentID)) this.removeByName('one');
-      if (this.mapViewModeLocal !== 'heatmap') this.map.addLayer(this.vectorLayerCollection);
+      if (this.mapViewModeLocal !== 'heatmap' && this.mapViewModeLocal !== 'zones') this.map.addLayer(this.vectorLayerCollection);
       this.restoreView();
     },
     addOneLayer() {
       this.closePopup();
       if (!this.map || !this.oneFeature) return;
       this.removeByName('one');
-      if (this.mapViewModeLocal !== 'heatmap' && this.mapViewModeLocal !== 'timeline') {
+      if (this.mapViewModeLocal !== 'heatmap' && this.mapViewModeLocal !== 'timeline' && this.mapViewModeLocal !== 'zones') {
         this.map.addLayer(this.vectorLayerOne);
         this.restoreView();
       }
     },
     removeAllFeatureLayers() {
-      this.removeByName('heatmap'); this.removeByName('collection'); this.removeByName('one'); this.removeByName('timeline-features');
+      this.removeByName('heatmap'); this.removeByName('collection'); this.removeByName('one'); this.removeByName('timeline-features'); this.removeByName('zones-features');
     },
     onModeChange(mode) {
       this.$store.commit('setMapViewMode', mode);
@@ -270,6 +288,7 @@ export default {
       this.closePopup();
       if (mode === 'default') { this.addCollectionLayer(); this.addOneLayer(); }
       else if (mode === 'heatmap') this.initHeatmapMode();
+      else if (mode === 'zones') this.initZonesMode();
       else if (mode === 'timeline') { this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineMax]); this.initTimelineMode(); }
     },
     initHeatmapMode() {
@@ -299,6 +318,37 @@ export default {
       if (this.mapViewModeLocal !== 'timeline') return;
       this.removeByName('timeline-features');
       this.initTimelineMode();
+    },
+    initZonesMode() {
+      if (!this.map || !this.collectionFeatures) return;
+      this.removeAllFeatureLayers();
+      try {
+        const features = this.collectionFeatures.features;
+        if (!features || features.length === 0) return;
+        const olFeatures = new GeoJSON().readFeatures(this.collectionFeatures);
+        const zoneFeatures = [];
+        olFeatures.forEach(f => {
+          if (!f.getGeometry() || f.getGeometry().getType() !== 'Point') return;
+          zoneFeatures.push(new Feature({ geometry: new CircleGeometry(f.getGeometry().getCoordinates(), this.zoneRadius) }));
+        });
+        if (zoneFeatures.length) {
+          const zoneStyle = new Style({
+            fill: new Fill({ color: this.zoneFillColor }),
+            stroke: new Stroke({ color: this.zoneStrokeColor, width: 2 }),
+          });
+          const src = new VectorSource({ features: zoneFeatures });
+          this.map.addLayer(new VectorLayer({ source: src, name: 'zones-features', style: zoneStyle, zIndex: 4 }));
+        }
+      } catch (e) {
+        console.error('initZonesMode error:', e);
+      }
+      this.map.addLayer(new VectorLayer({ source: new VectorSource({ features: new GeoJSON().readFeatures(this.collectionFeatures, {}) }), name: 'collection', style: this.styleFunctionCollection, zIndex: 6 }));
+      this.restoreView();
+      this.map.updateSize();
+    },
+    updateZones() {
+      if (this.mapViewModeLocal !== 'zones') return;
+      this.initZonesMode();
     },
     toggleTimelinePlay() { this.timelinePlaying ? this.stopTimeline() : this.startTimeline(); },
     startTimeline() {
@@ -451,6 +501,7 @@ export default {
     collectionFeatures() {
       if (this.mapViewModeLocal === 'default') this.addCollectionLayer();
       else if (this.mapViewModeLocal === 'heatmap') this.initHeatmapMode();
+      else if (this.mapViewModeLocal === 'zones') this.initZonesMode();
       else if (this.mapViewModeLocal === 'timeline') { this.$store.commit('setTimelineRange', [this.timelineMin, this.timelineMax]); this.initTimelineMode(); }
     },
     currentID() { if (this.mapViewModeLocal !== 'heatmap') this.addOneLayer(); },
@@ -459,6 +510,9 @@ export default {
     heatmapBlur() { this.updateHeatmap(); },
     heatmapIntensity() { this.updateHeatmap(); },
     heatmapGradientKey() { this.updateHeatmap(); },
+    zoneRadius() { this.updateZones(); },
+    zoneFillColor() { this.updateZones(); },
+    zoneStrokeColor() { this.updateZones(); },
   },
 };
 </script>
