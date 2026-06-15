@@ -5,6 +5,12 @@
         {{ isMapFullscreen ? '✕' : '⛶' }}
       </el-button>
     </el-tooltip>
+    <el-tooltip content="Экспорт карты в JPG" placement="left" :show-after="500">
+      <el-button class="export-jpg-btn" size="small" @click="onExportJPG">
+        <el-icon><Download /></el-icon>
+        Экспорт JPG
+      </el-button>
+    </el-tooltip>
     <div class="map-mode-toolbar">
       <el-radio-group v-model="mapViewModeLocal" size="small" @change="onModeChange">
         <el-radio-button label="Карта" value="default" />
@@ -14,7 +20,7 @@
     </div>
     <div v-if="mapViewModeLocal === 'heatmap'" class="map-mode-controls heatmap-controls">
       <span class="ctrl-label">Палитра:</span>
-      <el-select v-model="heatmapGradientKey" size="small" style="width: 120px">
+        <el-select v-model="heatmapGradientKey" size="small" style="width: 120px" popper-class="heatmap-gradient-popper">
         <el-option v-for="g in heatmapGradientPresets" :key="g.key" :label="g.label" :value="g.key">
           <div class="gradient-option"><div class="gradient-preview" :style="{background: g.css}"></div><span class="gradient-label">{{ g.label }}</span></div>
         </el-option>
@@ -311,6 +317,130 @@ export default {
       if (this.map) { setTimeout(() => this.map.updateSize(), 100); }
     },
     stopTimeline() { this.timelinePlaying = false; if (this.timelineInterval) { clearInterval(this.timelineInterval); this.timelineInterval = null; } },
+    onExportJPG() {
+      if (!this.map) return;
+      const map = this.map;
+      const size = map.getSize();
+      if (!size || size[0] === 0 || size[1] === 0) {
+        this.$message?.warning?.('Карта не загружена');
+        return;
+      }
+      map.renderSync();
+      const captureMap = () => {
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = size[0];
+        exportCanvas.height = size[1];
+        const ctx = exportCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+        const viewport = map.getTargetElement().querySelector('.ol-viewport');
+        if (viewport) {
+          const canvases = viewport.querySelectorAll('canvas');
+          canvases.forEach(canvas => {
+            if (canvas.width === 0 || canvas.height === 0) return;
+            const opacity = canvas.style.opacity;
+            if (opacity) ctx.globalAlpha = Number(opacity);
+            const transform = canvas.style.transform;
+            if (transform && transform !== 'none') {
+              const matrix = transform.match(/^matrix\(([^\(]*)\)$/);
+              if (matrix) {
+                const v = matrix[1].split(',').map(Number);
+                ctx.setTransform(v[0], v[1], v[2], v[3], v[4], v[5]);
+              }
+            }
+            ctx.drawImage(canvas, 0, 0);
+            ctx.globalAlpha = 1;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+          });
+        }
+        if (this.mapViewModeLocal === 'heatmap' && this.collectionFeatures && this.collectionFeatures.features) {
+          this.renderHeatmapForExport(ctx, size[0], size[1]);
+        }
+        const link = document.createElement('a');
+        link.download = 'map_export_' + new Date().toISOString().slice(0, 10) + '.jpg';
+        link.href = exportCanvas.toDataURL('image/jpeg', 0.92);
+        link.click();
+      };
+      requestAnimationFrame(() => { requestAnimationFrame(captureMap); });
+    },
+    renderHeatmapForExport(ctx, w, h) {
+      const map = this.map;
+      const view = map.getView();
+      const resolution = view.getResolution();
+      if (!resolution || !this.collectionFeatures) return;
+      const features = this.collectionFeatures.features;
+      const radius = this.heatmapRadius;
+      const blur = this.heatmapBlur;
+      const intensity = this.heatmapIntensity;
+      const preset = this.heatmapGradientPresets.find(g => g.key === this.heatmapGradientKey);
+      const presetColors = preset ? preset.colors : this.heatmapGradientPresets[0].colors;
+      const parseColor = (c) => {
+        let m;
+        if ((m = c.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/))) {
+          return { r: +m[1], g: +m[2], b: +m[3] };
+        }
+        if (c.startsWith('#')) {
+          const hex = c.replace('#', '');
+          return { r: parseInt(hex.substr(0, 2), 16), g: parseInt(hex.substr(2, 2), 16), b: parseInt(hex.substr(4, 2), 16) };
+        }
+        return { r: 0, g: 0, b: 0 };
+      };
+      const gradientStops = presetColors.map(parseColor);
+      const lut = new Uint8Array(256 * 3);
+      for (let i = 0; i < 256; i++) {
+        const norm = i / 255;
+        const idx = norm * (gradientStops.length - 1);
+        const lo = Math.floor(idx);
+        const hi = Math.min(lo + 1, gradientStops.length - 1);
+        const frac = idx - lo;
+        lut[i * 3]     = Math.round(gradientStops[lo].r + (gradientStops[hi].r - gradientStops[lo].r) * frac);
+        lut[i * 3 + 1] = Math.round(gradientStops[lo].g + (gradientStops[hi].g - gradientStops[lo].g) * frac);
+        lut[i * 3 + 2] = Math.round(gradientStops[lo].b + (gradientStops[hi].b - gradientStops[lo].b) * frac);
+      }
+      const heatCanvas = document.createElement('canvas');
+      heatCanvas.width = w;
+      heatCanvas.height = h;
+      const hctx = heatCanvas.getContext('2d');
+      hctx.globalCompositeOperation = 'lighter';
+      features.forEach(f => {
+        if (!f.geometry || f.geometry.type !== 'Point') return;
+        const px = map.getPixelFromCoordinate(f.geometry.coordinates);
+        if (!px) return;
+        const r = radius * intensity;
+        const g = hctx.createRadialGradient(px[0], px[1], 0, px[0], px[1], r);
+        g.addColorStop(0, 'rgba(0,0,0,1)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        hctx.fillStyle = g;
+        hctx.fillRect(px[0] - r, px[1] - r, r * 2, r * 2);
+      });
+      const blurCanvas = document.createElement('canvas');
+      blurCanvas.width = w;
+      blurCanvas.height = h;
+      const bctx = blurCanvas.getContext('2d');
+      bctx.filter = 'blur(' + blur + 'px)';
+      bctx.drawImage(heatCanvas, 0, 0);
+      const heatData = bctx.getImageData(0, 0, w, h);
+      const heatPix = heatData.data;
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = w;
+      offCanvas.height = h;
+      const octx = offCanvas.getContext('2d');
+      const offData = octx.createImageData(w, h);
+      const offPix = offData.data;
+      for (let i = 0; i < heatPix.length; i += 4) {
+        const alpha = heatPix[i + 3];
+        if (alpha > 0) {
+          const a = Math.min(alpha, 255);
+          offPix[i]     = lut[a * 3];
+          offPix[i + 1] = lut[a * 3 + 1];
+          offPix[i + 2] = lut[a * 3 + 2];
+          offPix[i + 3] = alpha > 255 ? 255 : alpha;
+        }
+      }
+      octx.putImageData(offData, 0, 0);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(offCanvas, 0, 0);
+    },
   },
   mounted() {
     this.initMap(); this.initPointer(); this.initTooltip(); this.initPopup();
@@ -358,10 +488,14 @@ export default {
   .gradient-preview { width: 90px; height: 12px; border-radius: 2px; border: 1px solid hsl(0,0%,80%); }
   .gradient-label { font-size: 12px; color: hsl(0,0%,15%); white-space: nowrap; }
   .fullscreen-btn { position: absolute; top: 7px; left: 4px; z-index: 25; }
+  .export-jpg-btn { position: absolute; top: 7px; right: 4px; z-index: 25; }
   .ol-zoom { top: 32px !important; left: 5px !important; }
   &.is-fullscreen {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background: hsl(0,0%,100%);
     .map { width: 100%; height: 100%; }
   }
+}
+.heatmap-gradient-popper {
+  z-index: 10001 !important;
 }
 </style>
