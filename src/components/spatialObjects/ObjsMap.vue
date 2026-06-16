@@ -40,7 +40,7 @@
       <span class="ctrl-label">Радиус (м):</span>
       <el-slider v-model="zoneRadius" :min="100" :max="10000" :step="100" size="small" style="width: 120px" />
       <span class="ctrl-value">{{ zoneRadius }}м</span>
-      <el-checkbox v-model="zoneMerge" size="small" @change="updateZones">Объединить</el-checkbox>
+      <el-checkbox v-model="zoneMerge" size="small" @change="onZoneMergeChange">Объединить</el-checkbox>
       <span class="ctrl-label">Заливка:</span>
       <el-color-picker v-model="zoneFillColor" size="small" @change="updateZones" />
       <template v-if="zoneFillColor">
@@ -178,6 +178,10 @@ export default {
     heatmapGradient() {
       let preset = this.heatmapGradientPresets.find(g => g.key === this.heatmapGradientKey);
       return preset ? preset.colors : this.heatmapGradientPresets[0].colors;
+    },
+    zonePointCount() {
+      if (!this.collectionFeatures) return 0;
+      return this.collectionFeatures.features.filter(f => f.geometry && f.geometry.type === 'Point').length;
     },
     heatmapLayer() {
       if (!this.collectionFeatures) return null;
@@ -396,6 +400,14 @@ export default {
       }
       this.restoreView();
       this.map.updateSize();
+    },
+    onZoneMergeChange(val) {
+      if (val && this.zonePointCount > 100) {
+        this.zoneMerge = false;
+        this.$message?.warning?.('В списке должно быть не более 100 объектов');
+        return;
+      }
+      this.updateZones();
     },
     updateZones() {
       if (this.mapViewModeLocal !== 'zones') return;
