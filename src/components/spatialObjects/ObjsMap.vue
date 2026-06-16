@@ -43,6 +43,11 @@
       <el-checkbox v-model="zoneMerge" size="small" @change="updateZones">Объединить</el-checkbox>
       <span class="ctrl-label">Заливка:</span>
       <el-color-picker v-model="zoneFillColor" size="small" @change="updateZones" />
+      <template v-if="zoneFillColor">
+        <span class="ctrl-label">Прозр.:</span>
+        <el-slider v-model="zoneFillOpacity" :min="0" :max="1" :step="0.05" size="small" style="width: 80px" @change="updateZones" />
+        <span class="ctrl-value">{{ Math.round(zoneFillOpacity * 100) }}%</span>
+      </template>
       <span class="ctrl-label">Контур:</span>
       <el-color-picker v-model="zoneStrokeColor" size="small" @change="updateZones" />
     </div>
@@ -66,7 +71,7 @@ import GeoJSON from 'ol/format/GeoJSON.js';
 import Map from 'ol/Map.js';
 import View from 'ol/View.js';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style.js';
-import {Circle as CircleGeometry} from 'ol/geom.js';
+import {Circle as CircleGeometry, Polygon} from 'ol/geom.js';
 import Feature from 'ol/Feature.js';
 import {OSM, Vector as VectorSource} from 'ol/source.js';
 import {Tile as TileLayer, Vector as VectorLayer, Heatmap as HeatmapLayer} from 'ol/layer.js';
@@ -74,6 +79,7 @@ import Overlay from 'ol/Overlay.js';
 import {ScaleLine} from 'ol/control.js';
 import {DoubleClickZoom} from 'ol/interaction.js';
 import {mapState} from 'vuex';
+import {toLonLat, fromLonLat} from 'ol/proj.js';
 import * as turf from '@turf/turf';
 const LAYER_NAMES = ['collection', 'one', 'timeline-features', 'zones-features'];
 export default {
@@ -103,8 +109,9 @@ export default {
       isMapFullscreen: false,
       timelinePlaying: false, timelineInterval: null,
       zoneRadius: 5000,
-      zoneMerge: true,
+      zoneMerge: false,
       zoneFillColor: 'rgba(57,139,57,0.3)',
+      zoneFillOpacity: 0.3,
       zoneStrokeColor: 'rgba(40,105,40,0.8)',
     };
   },
@@ -211,7 +218,7 @@ export default {
         if (evt.dragging) { info.style.visibility = 'hidden'; cur = undefined; return; }
         const px = map.getEventPixel(evt.originalEvent);
         const feat = evt.originalEvent.target.closest('.ol-control') ? undefined
-          : map.forEachFeatureAtPixel(px, (f, l) => f);
+          : map.forEachFeatureAtPixel(px, (f, l) => { if (LAYER_NAMES.indexOf(l.get('name')) !== -1 && l.get('name') !== 'zones-features') return f; });
         if (feat) {
           info.style.left = 10 + px[0] + 'px'; info.style.top = px[1] + 'px';
           if (feat !== cur) { info.style.visibility = 'visible'; info.innerText = feat.get('name'); }
@@ -319,30 +326,74 @@ export default {
       this.removeByName('timeline-features');
       this.initTimelineMode();
     },
+    parseColorWithOpacity(color, opacity) {
+      if (!color) return null;
+      let r = 0, g = 0, b = 0;
+      const m = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+      if (m) { r = +m[1]; g = +m[2]; b = +m[3]; }
+      else if (color.startsWith('#')) {
+        const hex = color.replace('#', '');
+        r = parseInt(hex.substr(0, 2), 16);
+        g = parseInt(hex.substr(2, 2), 16);
+        b = parseInt(hex.substr(4, 2), 16);
+      }
+      return 'rgba(' + r + ',' + g + ',' + b + ',' + opacity + ')';
+    },
     initZonesMode() {
       if (!this.map || !this.collectionFeatures) return;
       this.removeAllFeatureLayers();
       try {
-        const features = this.collectionFeatures.features;
-        if (!features || features.length === 0) return;
-        const olFeatures = new GeoJSON().readFeatures(this.collectionFeatures);
-        const zoneFeatures = [];
-        olFeatures.forEach(f => {
-          if (!f.getGeometry() || f.getGeometry().getType() !== 'Point') return;
-          zoneFeatures.push(new Feature({ geometry: new CircleGeometry(f.getGeometry().getCoordinates(), this.zoneRadius) }));
-        });
-        if (zoneFeatures.length) {
-          const zoneStyle = new Style({
-            fill: new Fill({ color: this.zoneFillColor }),
-            stroke: new Stroke({ color: this.zoneStrokeColor, width: 2 }),
-          });
-          const src = new VectorSource({ features: zoneFeatures });
-          this.map.addLayer(new VectorLayer({ source: src, name: 'zones-features', style: zoneStyle, zIndex: 4 }));
+        const features = this.collectionFeatures.features.filter(f => f.geometry && f.geometry.type === 'Point');
+        if (!features.length) return;
+        const radiusMeters = this.zoneRadius;
+        const steps = 64;
+        const createCirclePoints = (coords, radius) => {
+          const pts = [];
+          for (let i = 0; i <= steps; i++) {
+            const angle = (i / steps) * 2 * Math.PI;
+            pts.push([coords[0] + radius * Math.cos(angle), coords[1] + radius * Math.sin(angle)]);
+          }
+          return pts;
+        };
+        const allCircles = features.map(f => createCirclePoints(f.geometry.coordinates, radiusMeters));
+        let zoneRings;
+        if (this.zoneMerge && allCircles.length > 1) {
+          const turfCircles = allCircles.map(pts => turf.polygon([pts.map(p => toLonLat(p))]));
+          let unioned = turfCircles[0];
+          for (let i = 1; i < turfCircles.length; i++) {
+            try { unioned = turf.union(turf.featureCollection([unioned, turfCircles[i]])); }
+            catch (e) { unioned = turf.union(unioned, turfCircles[i]); }
+          }
+          const geom = unioned.geometry;
+          if (geom.type === 'Polygon') {
+            zoneRings = [geom.coordinates.map(ring => ring.map(c => fromLonLat(c)))];
+          } else if (geom.type === 'MultiPolygon') {
+            zoneRings = geom.coordinates.map(poly => poly.map(ring => ring.map(c => fromLonLat(c))));
+          } else {
+            zoneRings = allCircles.map(c => [c]);
+          }
+        } else {
+          zoneRings = allCircles.map(c => [c]);
         }
+        const zoneFeatures = [];
+        zoneRings.forEach(rings => {
+          try {
+            const geom = new Polygon(rings);
+            zoneFeatures.push(new Feature({ geometry: geom }));
+          } catch (e) {
+            console.warn('Failed to create zone polygon:', e);
+          }
+        });
+        if (!zoneFeatures.length) return;
+        const fillColor = this.parseColorWithOpacity(this.zoneFillColor, this.zoneFillOpacity);
+        const strokeColor = this.zoneStrokeColor || 'rgba(40,105,40,0.8)';
+        const zoneStyle = new Style({ fill: fillColor ? new Fill({ color: fillColor }) : null, stroke: new Stroke({ color: strokeColor, width: 2 }) });
+        const zoneLayer = new VectorLayer({ source: new VectorSource({ features: zoneFeatures }), name: 'zones-features', style: zoneStyle, zIndex: 4 });
+        this.map.addLayer(zoneLayer);
+        this.map.addLayer(new VectorLayer({ source: new VectorSource({ features: new GeoJSON().readFeatures(this.collectionFeatures, {}) }), name: 'collection', style: this.styleFunctionCollection, zIndex: 6 }));
       } catch (e) {
         console.error('initZonesMode error:', e);
       }
-      this.map.addLayer(new VectorLayer({ source: new VectorSource({ features: new GeoJSON().readFeatures(this.collectionFeatures, {}) }), name: 'collection', style: this.styleFunctionCollection, zIndex: 6 }));
       this.restoreView();
       this.map.updateSize();
     },
@@ -499,6 +550,7 @@ export default {
   beforeUnmount() { this.stopTimeline(); },
   watch: {
     collectionFeatures() {
+      this.zoneMerge = false;
       if (this.mapViewModeLocal === 'default') this.addCollectionLayer();
       else if (this.mapViewModeLocal === 'heatmap') this.initHeatmapMode();
       else if (this.mapViewModeLocal === 'zones') this.initZonesMode();
@@ -512,6 +564,7 @@ export default {
     heatmapGradientKey() { this.updateHeatmap(); },
     zoneRadius() { this.updateZones(); },
     zoneFillColor() { this.updateZones(); },
+    zoneFillOpacity() { this.updateZones(); },
     zoneStrokeColor() { this.updateZones(); },
   },
 };
@@ -534,7 +587,7 @@ export default {
     }
   }
   .map-mode-toolbar { position: absolute; top: 4px; left: 30px; z-index: 20; background-color: hsla(0,0%,100%,0.9); border-radius: 4px; padding: 2px; box-shadow: 0 1px 4px hsla(0,0%,0%,0.15); }
-  .map-mode-controls { position: absolute; top: 36px; left: 30px; z-index: 20; display: flex; flex-flow: row nowrap; align-items: center; gap: 4px; background-color: hsla(0,0%,100%,0.9); border-radius: 4px; padding: 2px 6px; box-shadow: 0 1px 4px hsla(0,0%,0%,0.15);
+  .map-mode-controls { position: absolute; top: 36px; left: 30px; z-index: 20; display: flex; flex-flow: row wrap; align-items: center; gap: 4px; background-color: hsla(0,0%,100%,0.9); border-radius: 4px; padding: 2px 6px; box-shadow: 0 1px 4px hsla(0,0%,0%,0.15);
     .ctrl-label { font-size: 11px; color: hsl(0,0%,30%); white-space: nowrap; }
     .ctrl-value { font-size: 11px; color: hsl(0,0%,30%); white-space: nowrap; }
   }
