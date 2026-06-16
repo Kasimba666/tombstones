@@ -349,13 +349,31 @@ export default new Vuex.Store({
         // geofeatures: [],
     },
     getters: {
-        //фильтры построены на основе схемы, справочники для фильтров берутся из полного набора данных соответствующего раздела схемы
+        //фильтры построены на основе схемы, справочники для фильтров пересчитываются с учётом выбранных значений других фильтров
         filters: (state) => {
             if (!!state.geojson) {
+                const applyOtherFilters = (features, excludeAttrName) => {
+                    return features.filter(feature => {
+                        for (const fv of state.filtersValues) {
+                            if (fv.attrName === excludeAttrName) continue;
+                            if (fv.type === 'select' && fv.value !== 'all') {
+                                if (feature.properties[fv.attrName] !== fv.value) return false;
+                            }
+                            if (fv.type === 'input' && fv.value != null && fv.value !== '') {
+                                const propVal = (feature.properties[fv.attrName] != null ? feature.properties[fv.attrName] : '').toString().toLowerCase();
+                                if (!propVal.includes(fv.value.toString().toLowerCase())) return false;
+                            }
+                            if (fv.type === 'range' && fv.value && fv.value.notNull) {
+                                const propVal = feature.properties[fv.attrName];
+                                if (propVal == null || propVal < fv.value.range[0] || propVal > fv.value.range[1]) return false;
+                            }
+                        }
+                        return true;
+                    });
+                };
                 let newFilters = [];
                 state.scheme.forEach((attr) => {
                     if (!state.geojson.features[0].properties.hasOwnProperty(attr.attrName)) {
-                        console.log(attr.attrName);
                         return
                     };
                     if (attr.filterType === 'input') {
@@ -366,8 +384,9 @@ export default new Vuex.Store({
                         });
                     }
                     if (attr.filterType === 'select') {
+                        const filtered = applyOtherFilters(state.geojson.features, attr.attrName);
                         let listValues = [];
-                        state.geojson.features.forEach(feature => {
+                        filtered.forEach(feature => {
                             if (feature.properties[attr.attrName] != null && feature.properties[attr.attrName] != '' && !listValues.map((v) => {
                                 return v.value
                             }).includes(feature.properties[attr.attrName])) {
@@ -393,14 +412,13 @@ export default new Vuex.Store({
                         });
                     }//select
                     if (attr.filterType === 'range') {
-                        let listValues = [];
+                        const filtered = applyOtherFilters(state.geojson.features, attr.attrName);
                         let allValues=[];
-                        state.geojson.features.forEach((feature)=>{
+                        filtered.forEach((feature)=>{
                             let value=feature.properties[attr.attrName];
                             if (!!value) allValues.push(value);
                         });
-                        listValues.push(Math.min(...allValues));
-                        listValues.push(Math.max(...allValues));
+                        let listValues = allValues.length ? [Math.min(...allValues), Math.max(...allValues)] : [0, 0];
                         newFilters.push({
                             attrName: attr.attrName,
                             title: attr.title,
