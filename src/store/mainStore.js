@@ -183,6 +183,18 @@ export default new Vuex.Store({
                 sortable: 0,
             },
             {
+                attrName: 'ornament',
+                title: 'Орнамент',
+                inTable: 1,
+                colSize: 1,
+                inCards: 1,
+                inDetails: 1,
+                inMap: 1,
+                filterType: 'select',
+                parentValueFrom: null,
+                sortable: 0,
+            },
+            {
                 attrName: 'person',
                 title: 'Персона',
                 inTable: 0,
