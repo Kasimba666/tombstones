@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OGRVRTDataSource>
+    <OGRVRTLayer name="Таблица надгробий с координатами 2026_full-Таблица надгробий с координатам">
+        <SrcDataSource relativeToVRT="1">Таблица надгробий с координатами 2026_full.xlsx</SrcDataSource>
+        <!--Header=False-->
+        <SrcLayer>Таблица надгробий с координатам</SrcLayer>
+        <Field name="ID" src="ID" type="Integer"/>
+        <Field name="NAME" src="NAME" type="String"/>
+        <Field name="SUBJECT" src="SUBJECT" type="String"/>
+        <Field name="ADMIN" src="ADMIN" type="String"/>
+        <Field name="LOCAL" src="LOCAL" type="String"/>
+        <Field name="DATE" src="DATE" type="String"/>
+        <Field name="FRONT" src="FRONT" type="String"/>
+        <Field name="WHOLE" src="WHOLE" type="String"/>
+        <Field name="PLACE" src="PLACE" type="String"/>
+        <Field name="POSITION" src="POSITION" type="String"/>
+        <Field name="SAVE_RANK" src="SAVE_RANK" type="Integer"/>
+        <Field name="FONT" src="FONT" type="String"/>
+        <Field name="ORNAMENT" src="ORNAMENT" type="String"/>
+        <Field name="YEAR" src="YEAR" type="String"/>
+        <Field name="PERSON" src="PERSON" type="String"/>
+        <Field name="GENDER" src="GENDER" type="String"/>
+        <Field name="depth" src="depth" type="Integer"/>
+        <Field name="width" src="width" type="Integer"/>
+        <Field name="height" src="height" type="Integer"/>
+        <Field name="DESCRIPTION" src="DESCRIPTION" type="String"/>
+        <Field name="TEXT" src="TEXT" type="String"/>
+        <Field name="TYPE" src="TYPE" type="String"/>
+        <Field name="Museefication" src="Museefication" type="String"/>
+        <Field name="Code" src="Code" type="String"/>
+        <Field name="Representation" src="Representation" type="String"/>
+        <Field name="YEAR_Research" src="YEAR_Research" type="Integer"/>
+        <Field name="SKETCHFAB" src="SKETCHFAB" type="String"/>
+        <GeometryType>wkbPoint</GeometryType>
+        <LayerSRS>EPSG:4326</LayerSRS>
+        <GeometryField encoding="PointFromColumns" x="Lon" y="Lat"/>
+    </OGRVRTLayer>
+</OGRVRTDataSource>
