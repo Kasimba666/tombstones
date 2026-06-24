@@ -28,7 +28,6 @@
         <Field name="TYPE" src="TYPE" type="String"/>
         <Field name="Museefication" src="Museefication" type="String"/>
         <Field name="Code" src="Code" type="String"/>
-        <Field name="Representation" src="Representation" type="String"/>
         <Field name="YEAR_Research" src="YEAR_Research" type="Integer"/>
         <Field name="SKETCHFAB" src="SKETCHFAB" type="String"/>
         <GeometryType>wkbPoint</GeometryType>
