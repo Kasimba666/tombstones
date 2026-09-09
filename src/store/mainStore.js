@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 // import createPersistedState from 'vuex-persistedstate';
 // import fromFileJSON from "@/data/Epigraphy_2023_3857.json";
-import fromFileJSON from "@/data/Tatarstones_all_3857_2023_2024_2025_2026_3857_1.json";
+import fromFileJSON from "@/data/Tatarstones_all_3857_2023_2024_2025_2026_3857_2.json";
 import imagePaths from "@/data/images_tombstones_2023_2024_2025_2026.csv";
 // import imagePaths from "@/data/images_tombstones_2023.csv";
 // import fromFileBorder from "@/data/border_pgm_3857.json";
@@ -368,8 +368,8 @@ export default new Vuex.Store({
                     return features.filter(feature => {
                         for (const fv of state.filtersValues) {
                             if (fv.attrName === excludeAttrName) continue;
-                            if (fv.type === 'select' && fv.value !== 'all') {
-                                if (feature.properties[fv.attrName] !== fv.value) return false;
+                            if (fv.type === 'select' && fv.value && fv.value.length > 0) {
+                                if (!fv.value.includes(feature.properties[fv.attrName])) return false;
                             }
                             if (fv.type === 'input' && fv.value != null && fv.value !== '') {
                                 const propVal = (feature.properties[fv.attrName] != null ? feature.properties[fv.attrName] : '').toString().toLowerCase();
@@ -450,7 +450,7 @@ export default new Vuex.Store({
                     let filterPass = true;
                     state.filtersValues.forEach((fV) => {
                         if (fV.type === 'select') {
-                            if (!((fV.value === item.properties[fV.attrName]) || (fV.value === 'all'))) filterPass = false;
+                            if (fV.value && fV.value.length > 0 && !fV.value.includes(item.properties[fV.attrName])) filterPass = false;
                         }
                     if (fV.type === 'range') {
                         if (!(!fV.value && fV.value.range?.length === 0 || !fV.value.notNull || ((fV.value?.range?.[0] <= item.properties[fV.attrName]) && (item.properties[fV.attrName] <= fV.value?.range?.[1])))) filterPass = false;
@@ -616,7 +616,15 @@ export default new Vuex.Store({
         },
         getURLQueryJSON(state, commit) {
             let filters = {};
-            state.filtersValues.forEach((v)=>{if (!!v.value) filters[v.attrName] = v.value});
+            state.filtersValues.forEach((v)=>{
+                if (v.type === 'select') {
+                    if (v.value && v.value.length > 0) filters[v.attrName] = v.value;
+                } else if (v.type === 'input') {
+                    if (v.value != null && v.value !== '') filters[v.attrName] = v.value;
+                } else if (v.type === 'range') {
+                    if (v.value && v.value.notNull) filters[v.attrName] = v.value;
+                }
+            });
             if (Object.keys(state.sortingValues).length===0) commit('setSortingValues', {attrName: 'name', direction: 'asc'});
             let sortName = state.sortingValues.attrName;
             let sortDirection = state.sortingValues.direction;
@@ -655,7 +663,16 @@ export default new Vuex.Store({
             let filters = JSON.parse(v.filters);
             let order = JSON.parse(v.order);
             if (!!filters && Object.keys(filters).length>0) {
-                state.filtersValues.forEach((w) => {if (filters.hasOwnProperty(w.attrName)) w.value = filters[w.attrName]});
+                state.filtersValues.forEach((w) => {
+                    if (filters.hasOwnProperty(w.attrName)) {
+                        let val = filters[w.attrName];
+                        if (w.type === 'select') {
+                            w.value = Array.isArray(val) ? val : (val === 'all' ? [] : [val]);
+                        } else {
+                            w.value = val;
+                        }
+                    }
+                });
             }else{
             //поставить исходные значения
             }
@@ -724,7 +741,7 @@ export default new Vuex.Store({
                 commit('setFiltersValues', getters.filters.map((v) => {
                     let newValue = null;
                     if (v.type==='input') newValue = '';
-                    if (v.type==='select') newValue = 'all';
+                    if (v.type==='select') newValue = [];
                     if (v.type==='range') newValue = {notNull: false, range: [v.listValues[0], v.listValues[1]]};
                     return {attrName: v.attrName, type: v.type, value: newValue}
                 }));

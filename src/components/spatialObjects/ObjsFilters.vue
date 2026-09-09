@@ -17,18 +17,16 @@
         <template v-if="filter.type === 'select'">
           <el-select id="filter_`${f}`"
               v-model="filtersValues[f].value"
-              placeholder="Select"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              clearable
+              placeholder="(все)"
               size="small"
               style="width: 160px"
               @change="onChangeFiltersValues"
+              :max-collapse-tags="1"
           >
-            <el-option
-                key="all"
-                label="(все)"
-                value="all"
-            >
-              (все)
-            </el-option>
             <el-option
                 v-for="(item, i) of valuesDependentOnParent(filter)"
                 :key="i"
@@ -109,31 +107,28 @@ export default {
   methods: {
 
     valuesDependentOnParent(f) {
-      if (f.attrParent != null || this.filtersValues.filter((fV) => {if (fV.attrName === f.attrParent) {return fV} })?.[0]?.value === 'all') {
-        let newListValues = f.listValues.filter((v) => {if (this.filtersValues.filter((fV) => { if (fV.attrName === f.attrParent) {return fV } })[0].value === v.parentValue) {return v}});
-        let filterValue = this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })?.[0]?.value;
-        //если текущее значение фильтра не null, но не попадает в диапазон допустимых значений из parent, то установить значение null
-        if (filterValue != 'all') {
-          if  (!newListValues.map((v)=>{return v.value}).includes(filterValue)) {this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })[0].value = 'all'}
+      let parentFv = this.filtersValues.filter((fV) => {if (fV.attrName === f.attrParent) {return fV} })?.[0];
+      let parentValue = parentFv ? parentFv.value : null;
+      let allSelected = !parentValue || parentValue.length === 0;
+
+      if (f.attrParent != null && !allSelected) {
+        let newListValues = f.listValues.filter((v) => {
+          return parentValue.includes(v.parentValue);
+        });
+        let filterFv = this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })?.[0];
+        //если текущее значение фильтра не пусто, но не попадает в диапазон допустимых значений из parent, то очистить
+        if (filterFv && filterFv.value.length > 0) {
+          let validValues = newListValues.map((v)=>{return v.value});
+          let newVal = filterFv.value.filter(v => validValues.includes(v));
+          if (newVal.length !== filterFv.value.length) {
+            filterFv.value = newVal;
+          }
         }
-        return newListValues != [] ? newListValues.sort((a, b) => a['value'] > b['value'] ? 1 : -1) : 'all';
+        return newListValues.length > 0 ? newListValues.sort((a, b) => a['value'] > b['value'] ? 1 : -1) : [];
       } else {
-        return f.listValues != [] ? f.listValues.sort((a, b) => a['value'] > b['value'] ? 1 : -1) : 'all';
+        return f.listValues.length > 0 ? f.listValues.sort((a, b) => a['value'] > b['value'] ? 1 : -1) : [];
       }
     },
-    // valuesDependentOnParent(f) {
-    //   if (f.attrParent != null || this.filtersValues.filter((fV) => {if (fV.attrName === f.attrParent) {return fV} })?.[0]?.value === null) {
-    //     let newListValues = f.listValues.filter((v) => {if (this.filtersValues.filter((fV) => { if (fV.attrName === f.attrParent) {return fV } })[0].value === v.parentValue) {return v}});
-    //     let filterValue = this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })?.[0]?.value;
-    //     //если текущее значение фильтра не null, но не попадает в диапазон допустимых значений из parent, то установить значение null
-    //     if (filterValue != null) {
-    //       if  (!newListValues.map((v)=>{return v.value}).includes(filterValue)) {this.filtersValues.filter((fV) => {if (fV.attrName === f.attrName) {return fV} })[0].value = null}
-    //     }
-    //     return newListValues != [] ? newListValues.sort((a, b) => a['value'] > b['value'] ? 1 : -1) : null;
-    //   } else {
-    //     return f.listValues != [] ? f.listValues.sort((a, b) => a['value'] > b['value'] ? 1 : -1) : null;
-    //   }
-    // },
 
     onChangeFiltersValues() {
       this.$emit('update:filtersValues');

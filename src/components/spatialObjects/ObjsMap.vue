@@ -14,7 +14,7 @@
     <div class="map-mode-toolbar">
       <el-radio-group v-model="mapViewModeLocal" size="small" @change="onModeChange">
         <el-radio-button label="Карта" value="default" />
-        <el-radio-button label="Тепло" value="heatmap" />
+        <el-radio-button label="Плотность" value="heatmap" />
         <el-radio-button label="Зоны" value="zones" />
         <el-radio-button label="Время" value="timeline" />
       </el-radio-group>
@@ -26,13 +26,13 @@
           <div class="gradient-option"><div class="gradient-preview" :style="{background: g.css}"></div><span class="gradient-label">{{ g.label }}</span></div>
         </el-option>
       </el-select>
-      <span class="ctrl-label">R:</span>
+      <span class="ctrl-label">Радиус:</span>
       <el-slider v-model="heatmapRadius" :min="5" :max="50" :step="1" size="small" style="width: 80px" />
       <span class="ctrl-value">{{ heatmapRadius }}</span>
-      <span class="ctrl-label">B:</span>
+      <span class="ctrl-label">Размытие:</span>
       <el-slider v-model="heatmapBlur" :min="5" :max="100" :step="5" size="small" style="width: 80px" />
       <span class="ctrl-value">{{ heatmapBlur }}</span>
-      <span class="ctrl-label">I:</span>
+      <span class="ctrl-label">Интенсивность:</span>
       <el-slider v-model="heatmapIntensity" :min="0.1" :max="2.0" :step="0.1" size="small" style="width: 80px" />
       <span class="ctrl-value">{{ heatmapIntensity.toFixed(1) }}x</span>
     </div>
