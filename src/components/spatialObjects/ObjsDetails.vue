@@ -196,7 +196,13 @@ export default {
       this.$router.push({name: 'ObjsDetails', params: {id: this.currentID}});
     },
     goBack() {
-      this.$router.push({name: 'ObjsFiltersAndList', query: this.getURLQueryJSON});
+      //если пришли со списка - вернуться назад (прокрутка, режим просмотра и фильтры восстановятся),
+      //иначе (прямой заход на страницу) - перейти на список
+      if (!!window.history.state && !!window.history.state.back) {
+        this.$router.back();
+      } else {
+        this.$router.push({name: 'ObjsFiltersAndList', query: this.getURLQueryJSON});
+      }
     },
     async fetchImageAsBase64(url) {
       try {

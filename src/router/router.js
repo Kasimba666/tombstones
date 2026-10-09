@@ -28,7 +28,11 @@ const routes = [
 
 const router = createRouter({
     routes,
-    history: createWebHistory(import.meta.env.BASE_URL)
+    history: createWebHistory(import.meta.env.BASE_URL),
+    //восстановление позиции прокрутки при переходах "назад"/"вперёд"
+    scrollBehavior(to, from, savedPosition) {
+        return savedPosition || {top: 0};
+    },
 });
 
 export default router;

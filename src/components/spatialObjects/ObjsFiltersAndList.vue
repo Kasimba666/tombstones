@@ -102,7 +102,6 @@ export default {
     return {
       allowShortMode: true, //true - разрешить использование карточек вместо таблицы, располагать list и map в горизонтальной последовательности
       currentViewMode: 'list',
-      dataViewMode: 'mosaic', //режим просмотра данных: 'mosaic' - мозаика, 'list' - список, 'table' - таблица
       filtersIsShown: false,
     }
   },
@@ -175,6 +174,16 @@ export default {
     },
     totalCount() {
       return this.filteredGeojson ? this.filteredGeojson.features.length : 0;
+    },
+    //текущий режим просмотра данных (хранится в store и в адресной строке - восстанавливается при возврате)
+    dataViewMode: {
+      get() {
+        return this.$store.state.dataViewMode;
+      },
+      set(v) {
+        this.$store.commit('setDataViewMode', v);
+        this.$router.push({name: 'ObjsFiltersAndList', query: this.getURLQueryJSON});
+      },
     },
   },
   methods: {

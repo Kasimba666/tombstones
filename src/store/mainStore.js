@@ -356,6 +356,7 @@ export default new Vuex.Store({
         filtersValues: [],
         sortingValues: {attrName: 'name', direction: 'asc'},
         currentID: '',
+        dataViewMode: 'mosaic', //режим просмотра данных: 'mosaic' - мозаика, 'list' - список, 'table' - таблица
         mapViewMode: 'default',
         timelineRange: [1000, 2025],
         // geofeatures: [],
@@ -630,7 +631,7 @@ export default new Vuex.Store({
             let sortDirection = state.sortingValues.direction;
             let order={};
             order[sortName] = sortDirection;
-            return {filters: JSON.stringify(filters), order: JSON.stringify(order)};
+            return {filters: JSON.stringify(filters), order: JSON.stringify(order), view: state.dataViewMode};
         },
 
 
@@ -653,6 +654,9 @@ export default new Vuex.Store({
         setCurrentID(state, v) {
             state.currentID = v;
         },
+        setDataViewMode(state, v) {
+            state.dataViewMode = v;
+        },
         setMapViewMode(state, v) {
             state.mapViewMode = v;
         },
@@ -660,6 +664,9 @@ export default new Vuex.Store({
             state.timelineRange = v;
         },
         setFromURLQuery(state, v) {
+            if (!!v.view && ['mosaic', 'list', 'table'].includes(v.view)) {
+                state.dataViewMode = v.view;
+            }
             let filters = JSON.parse(v.filters);
             let order = JSON.parse(v.order);
             if (!!filters && Object.keys(filters).length>0) {
