@@ -45,6 +45,25 @@
         <el-radio-button label="Список" value="list" />
         <el-radio-button label="Карта" value="map" />
       </el-radio-group>
+      <el-radio-group class="data-view-switch"
+          v-if="(allowShortMode && !modeShort) || currentViewMode === 'list'"
+          v-model="dataViewMode"
+          size="small"
+          style="margin-bottom: 5px"
+      >
+        <el-radio-button value="mosaic">
+          <el-icon><Grid /></el-icon>
+          <span>Мозаика</span>
+        </el-radio-button>
+        <el-radio-button value="list">
+          <el-icon><List /></el-icon>
+          <span>Список</span>
+        </el-radio-button>
+        <el-radio-button value="table">
+          <el-icon><Notebook /></el-icon>
+          <span>Таблица</span>
+        </el-radio-button>
+      </el-radio-group>
       <ObjsList
           v-if="(allowShortMode && !modeShort) || currentViewMode === 'list'"
           :rows="rows"
@@ -83,6 +102,7 @@ export default {
     return {
       allowShortMode: true, //true - разрешить использование карточек вместо таблицы, располагать list и map в горизонтальной последовательности
       currentViewMode: 'list',
+      dataViewMode: 'mosaic', //режим просмотра данных: 'mosaic' - мозаика, 'list' - список, 'table' - таблица
       filtersIsShown: false,
     }
   },
@@ -143,7 +163,11 @@ export default {
 
     },
     modeList() {
-      // return this.modeShort ? 'cards' : 'table'
+      //режимы просмотра: 'mosaic' - мозаика, 'list' - список, 'table' - таблица
+      if (this.dataViewMode === 'mosaic' || this.dataViewMode === 'list' || this.dataViewMode === 'table') {
+        return this.dataViewMode;
+      }
+      //прежнее поведение: карточки на узких экранах, таблица на остальных
       return !!this.allowShortMode && this.modeShort ? 'cards' : 'table'
     },
     modeShort() {
