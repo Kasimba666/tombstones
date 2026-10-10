@@ -45,6 +45,7 @@ export default {
   mounted() {
     this.$store.dispatch('loadObjsStore');
     this.$store.dispatch('loadImagesCSV');
+    this.$store.dispatch('loadPublicationsCSV');
     this.$store.dispatch('initFiltersValues');
     this.$store.dispatch('initSortingValues');
     // this.$store.dispatch('initGeofeatures');

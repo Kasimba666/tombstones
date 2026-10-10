@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 // import fromFileJSON from "@/data/Epigraphy_2023_3857.json";
 import fromFileJSON from "@/data/Tatarstones_all_3857_2023_2024_2025_2026_3857_2.json";
 import imagePaths from "@/data/images_tombstones_2023_2024_2025_2026.csv";
+import publicationsRaw from "@/data/publications.csv?raw";
 // import imagePaths from "@/data/images_tombstones_2023.csv";
 // import fromFileBorder from "@/data/border_pgm_3857.json";
 // import imagePaths from "raw-loader!@/data/images_empty.csv";
@@ -354,6 +355,7 @@ export default new Vuex.Store({
         ],
         geojson: null,
         imgs: [],
+        publications: [],
         filtersValues: [],
         sortingValues: {attrName: 'name', direction: 'asc'},
         currentID: '',
@@ -653,6 +655,9 @@ export default new Vuex.Store({
         setImgs(state, v) {
             state.imgs = v
         },
+        setPublications(state, v) {
+            state.publications = v;
+        },
         setFiltersValues(state, v) {
             state.filtersValues = v;
         },
@@ -747,6 +752,28 @@ export default new Vuex.Store({
                     }
                 });
                 commit('setImgs', newImgs);
+            }
+        },
+        //публикации загружаются из csv с разделителем ";" как сырой текст (?raw) и парсятся вручную,
+        //т.к. плагин dsv разрезал бы поля authors по запятым
+        loadPublicationsCSV({commit}) {
+            try {
+                let lines = publicationsRaw.replace(/^\uFEFF/, '').split(/\r?\n/).filter((v) => v.replaceAll(' ', '') != '');
+                if (lines.length > 1) {
+                    let titles = lines[0].split(';').map((v) => v.toLowerCase());
+                    let newPublications = [];
+                    lines.slice(1).forEach((line) => {
+                        let cells = line.split(';');
+                        let publication = {};
+                        titles.forEach((title, i) => {
+                            publication[title] = cells[i] ?? '';
+                        });
+                        newPublications.push(publication);
+                    });
+                    commit('setPublications', newPublications);
+                }
+            } catch (e) {
+                alert('Ошибка загрузки файла публикаций');
             }
         },
         initFiltersValues({state, getters, dispatch}) {

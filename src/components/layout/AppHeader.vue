@@ -12,6 +12,11 @@
         Список камней
       </div>
       <div class="my-menu-items"
+           @click="$router.push({name: 'PgPublications'})"
+      >
+        Публикации
+      </div>
+      <div class="my-menu-items"
            @click="$router.push({name: 'PgAbout'})"
       >
         О проекте

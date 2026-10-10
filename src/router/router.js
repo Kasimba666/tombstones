@@ -1,5 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router';
 import PgAbout from '@/views/PgAbout.vue';
+import PgPublications from '@/views/PgPublications.vue';
 import ObjsDetails from '@/components/spatialObjects/ObjsDetails.vue';
 import ObjsFiltersAndList from '@/components/spatialObjects/ObjsFiltersAndList.vue';
 
@@ -22,6 +23,11 @@ const routes = [
         name: 'PgAbout',
         path: '/about',
         component: PgAbout,
+    },
+    {
+        name: 'PgPublications',
+        path: '/publications',
+        component: PgPublications,
     },
 
 ]
