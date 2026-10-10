@@ -12,7 +12,7 @@
         <el-option
             v-for="item of scheme.filter(v=>v.sortable === 1)"
             :value="item.attrName"
-            :label="item.title"
+            :label="item.sortTitle || item.title"
         />
       </el-select>
     <el-radio-group

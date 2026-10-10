@@ -173,6 +173,7 @@ export default new Vuex.Store({
             {
                 attrName: 'save_rank',
                 title: 'Состояние, в баллах',
+                sortTitle: 'Состояние', //название пункта в списке сортировки
                 inTable: 1,
                 colSize: 0.8,
                 inCards: 1,
@@ -180,7 +181,7 @@ export default new Vuex.Store({
                 inMap: 0,
                 filterType: 'select',
                 parentValueFrom: null,
-                sortable: 0,
+                sortable: 1,
             },
             {
                 attrName: 'year',
@@ -476,7 +477,16 @@ export default new Vuex.Store({
                     type: state.geojson.type,
                     name: state.geojson.name,
                     crs: state.geojson.crs,
-                    features: newFeatures.sort((a, b) => (state.sortingValues['direction'] === 'asc' ? 1: -1) * (a.properties[state.sortingValues['attrName']] > b.properties[state.sortingValues['attrName']] ? 1: -1)),
+                    features: newFeatures.sort((a, b) => {
+                        const direction = state.sortingValues['direction'] === 'asc' ? 1 : -1;
+                        const valueA = a.properties[state.sortingValues['attrName']];
+                        const valueB = b.properties[state.sortingValues['attrName']];
+                        //пустые значения всегда в конце списка
+                        const emptyA = valueA === null || valueA === undefined || valueA === '';
+                        const emptyB = valueB === null || valueB === undefined || valueB === '';
+                        if (emptyA || emptyB) return emptyA === emptyB ? 0 : (emptyA ? 1 : -1);
+                        return direction * (valueA > valueB ? 1 : -1);
+                    }),
                 }
             }
         },
