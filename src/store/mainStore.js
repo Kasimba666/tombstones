@@ -766,7 +766,9 @@ export default new Vuex.Store({
                         let cells = line.split(';');
                         let publication = {};
                         titles.forEach((title, i) => {
-                            publication[title] = cells[i] ?? '';
+                            //нормализация NFC: excel может сохранять "й"/"Й" как "и"+U+0306,
+                            //тогда имя файла не совпадёт с файлом на диске
+                            publication[title] = (cells[i] ?? '').normalize('NFC');
                         });
                         newPublications.push(publication);
                     });
