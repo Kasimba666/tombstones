@@ -1,6 +1,5 @@
 <template>
   <div class="PgPublications">
-    <div class="my-title-text">публикации</div>
     <div class="pubs-toolbar">
       <el-radio-group v-model="publicationsViewMode"
                       size="small"
@@ -16,16 +15,69 @@
         </el-radio-button>
       </el-radio-group>
       <div class="count-block">
-        <span class="count-label">Всего публикаций:</span>
-        <span class="count-value">{{ publications.length }}</span>
+        <span class="count-label">Показано публикаций:</span>
+        <span class="count-value">{{ filteredPublications.length }}</span>
+        <span class="count-total" v-if="filteredPublications.length !== publications.length">из {{ publications.length }}</span>
+      </div>
+    </div>
+
+    <!-- Фильтры в стиле "Списка камней" -->
+    <div class="pubs-filters">
+      <div class="filter-block">
+        <div class="label-placeholder">
+          <label>Тип: </label>
+        </div>
+        <div class="filter-placeholder">
+          <el-select v-model="selectedTypes"
+                     multiple
+                     collapse-tags
+                     collapse-tags-tooltip
+                     clearable
+                     placeholder="(все)"
+                     size="small"
+                     style="width: 160px"
+                     :max-collapse-tags="1"
+          >
+            <el-option
+                v-for="type of availableTypes"
+                :key="type"
+                :label="type"
+                :value="type"
+            />
+          </el-select>
+        </div>
+      </div>
+      <div class="filter-block">
+        <div class="label-placeholder">
+          <label>Авторы: </label>
+        </div>
+        <div class="filter-placeholder">
+          <el-select v-model="selectedAuthors"
+                     multiple
+                     collapse-tags
+                     collapse-tags-tooltip
+                     clearable
+                     placeholder="(все)"
+                     size="small"
+                     style="width: 160px"
+                     :max-collapse-tags="1"
+          >
+            <el-option
+                v-for="author of availableAuthors"
+                :key="author"
+                :label="author"
+                :value="author"
+            />
+          </el-select>
+        </div>
       </div>
     </div>
 
     <!-- Режим "Мозаика" -->
     <div class="pubs-mosaic" v-if="publicationsViewMode === 'mosaic'">
-      <template v-if="publications.length > 0">
+      <template v-if="filteredPublications.length > 0">
         <div class="pub-card"
-             v-for="(pub, i) of publications" :key="i"
+             v-for="(pub, i) of filteredPublications" :key="i"
              @click="openPublication(pub)"
         >
           <div class="pub-card-cover">
@@ -61,14 +113,14 @@
           </div>
         </div>
       </template>
-      <div class="pubs-empty" v-else>Нет данных</div>
+      <div class="pubs-empty" v-else>Нет публикаций по выбранным фильтрам</div>
     </div>
 
     <!-- Режим "Список" -->
     <div class="pubs-list" v-if="publicationsViewMode === 'list'">
-      <template v-if="publications.length > 0">
+      <template v-if="filteredPublications.length > 0">
         <div class="pub-row"
-             v-for="(pub, i) of publications" :key="i"
+             v-for="(pub, i) of filteredPublications" :key="i"
              @click="openPublication(pub)"
         >
           <div class="pub-row-cover">
@@ -104,7 +156,7 @@
           </div>
         </div>
       </template>
-      <div class="pubs-empty" v-else>Нет данных</div>
+      <div class="pubs-empty" v-else>Нет публикаций по выбранным фильтрам</div>
     </div>
   </div>
 </template>
@@ -123,12 +175,51 @@ export default {
       publicationsViewMode: 'mosaic',
       //превью первой страницы pdf: имя файла -> data-url изображения
       previews: {},
+      //отмеченные значения фильтров (пусто = показать все)
+      selectedTypes: [],
+      selectedAuthors: [],
     }
   },
   computed: {
     ...mapState(['publications']),
+    //доступные типы: только типы публикаций, подходящих под выбранных авторов
+    availableTypes() {
+      let types = [];
+      this.publications.forEach((pub) => {
+        let authors = this.authorsList(pub);
+        let authorsPass = this.selectedAuthors.length === 0 || this.selectedAuthors.some((author) => authors.includes(author));
+        if (authorsPass && pub.type && !types.includes(pub.type)) types.push(pub.type);
+      });
+      return types;
+    },
+    //доступные авторы: только авторы публикаций, подходящих под выбранный тип (по алфавиту)
+    availableAuthors() {
+      let authors = [];
+      this.publications.forEach((pub) => {
+        let typePass = this.selectedTypes.length === 0 || this.selectedTypes.includes(pub.type);
+        if (!typePass) return;
+        this.authorsList(pub).forEach((author) => {
+          if (!authors.includes(author)) authors.push(author);
+        });
+      });
+      return authors.sort((a, b) => a > b ? 1 : -1);
+    },
+    //публикации с учётом фильтров по типу и авторам (пустой фильтр = без ограничений)
+    filteredPublications() {
+      return this.publications.filter((pub) => {
+        let typePass = this.selectedTypes.length === 0 || this.selectedTypes.includes(pub.type);
+        let authors = this.authorsList(pub);
+        let authorsPass = this.selectedAuthors.length === 0 || this.selectedAuthors.some((author) => authors.includes(author));
+        return typePass && authorsPass;
+      });
+    },
   },
   methods: {
+    //массив авторов публикации: ячейка authors разбирается по запятым
+    authorsList(pub) {
+      if (!pub.authors) return [];
+      return pub.authors.split(',').map((v) => v.trim()).filter((v) => v !== '');
+    },
     //ссылка на pdf-файл публикации из public/assets/publications
     publicationLink(pub) {
       if (!pub.filename) return '';
@@ -160,6 +251,16 @@ export default {
       handler() {
         this.loadPreviews();
       },
+    },
+    //убрать из выбранных типов те, которых больше нет в списке доступных (как в ObjsFilters)
+    availableTypes() {
+      let newVal = this.selectedTypes.filter((type) => this.availableTypes.includes(type));
+      if (newVal.length !== this.selectedTypes.length) this.selectedTypes = newVal;
+    },
+    //убрать из выбранных авторов тех, которых больше нет в списке доступных
+    availableAuthors() {
+      let newVal = this.selectedAuthors.filter((author) => this.availableAuthors.includes(author));
+      if (newVal.length !== this.selectedAuthors.length) this.selectedAuthors = newVal;
     },
   },
   mounted() {
@@ -207,6 +308,45 @@ export default {
       font-size: 14px;
       font-weight: bold;
       color: hsl(180, 100%, 25%);
+
+      .count-total {
+        font-weight: normal;
+        color: hsl(0, 0%, 40%);
+      }
+    }
+  }
+
+  //фильтры в стиле ObjsFilters ("Список камней"), расположены по горизонтали с переносом
+  .pubs-filters {
+    width: 100%;
+    height: auto;
+    padding: 5px 10px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: start;
+    align-items: start;
+    gap: 5px;
+
+    .filter-block {
+      width: 270px;
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: left;
+      gap: 5px;
+      padding: 3px;
+
+      .label-placeholder {
+        width: 90px;
+        height: auto;
+        text-align: left;
+        display: flex;
+        align-items: center;
+      }
+
+      .filter-placeholder {
+        width: 160px;
+        height: auto;
+      }
     }
   }
 
