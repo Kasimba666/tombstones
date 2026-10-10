@@ -29,7 +29,12 @@
              @click="openPublication(pub)"
         >
           <div class="pub-card-cover">
-            <el-icon class="pub-card-cover-icon"><Document /></el-icon>
+            <img class="pub-card-cover-img"
+                 :src="previews[pub.filename]"
+                 :alt="pub.title"
+                 v-if="!!previews[pub.filename]"
+            />
+            <el-icon class="pub-card-cover-icon" v-else><Document /></el-icon>
             <span class="pub-type">{{ pub.type }}</span>
           </div>
           <div class="pub-card-body">
@@ -37,12 +42,23 @@
             <div class="pub-card-authors">{{ pub.authors }}</div>
             <div class="pub-card-year">{{ pub.year }}</div>
           </div>
-          <el-button size="small" type="primary" plain
-                     @click.stop="openPublication(pub)"
-          >
-            <el-icon><TopRight /></el-icon>
-            <span>Открыть PDF</span>
-          </el-button>
+          <div class="pub-card-actions">
+            <el-button size="small" type="primary" plain
+                       @click.stop="openPublication(pub)"
+            >
+              <el-icon><TopRight /></el-icon>
+              <span>Открыть</span>
+            </el-button>
+            <el-button size="small" type="primary" plain
+                       tag="a"
+                       :href="publicationLink(pub)"
+                       :download="pub.filename"
+                       @click.stop
+            >
+              <el-icon><Download /></el-icon>
+              <span>Скачать</span>
+            </el-button>
+          </div>
         </div>
       </template>
       <div class="pubs-empty" v-else>Нет данных</div>
@@ -56,7 +72,12 @@
              @click="openPublication(pub)"
         >
           <div class="pub-row-cover">
-            <el-icon class="pub-row-cover-icon"><Document /></el-icon>
+            <img class="pub-row-cover-img"
+                 :src="previews[pub.filename]"
+                 :alt="pub.title"
+                 v-if="!!previews[pub.filename]"
+            />
+            <el-icon class="pub-row-cover-icon" v-else><Document /></el-icon>
           </div>
           <div class="pub-row-body">
             <div class="pub-row-title">{{ pub.title }}</div>
@@ -64,12 +85,23 @@
           </div>
           <span class="pub-type">{{ pub.type }}</span>
           <div class="pub-row-year">{{ pub.year }}</div>
-          <el-button size="small" type="primary" plain
-                     @click.stop="openPublication(pub)"
-          >
-            <el-icon><TopRight /></el-icon>
-            <span>Открыть PDF</span>
-          </el-button>
+          <div class="pub-row-actions">
+            <el-button size="small" type="primary" plain
+                       @click.stop="openPublication(pub)"
+            >
+              <el-icon><TopRight /></el-icon>
+              <span>Открыть</span>
+            </el-button>
+            <el-button size="small" type="primary" plain
+                       tag="a"
+                       :href="publicationLink(pub)"
+                       :download="pub.filename"
+                       @click.stop
+            >
+              <el-icon><Download /></el-icon>
+              <span>Скачать</span>
+            </el-button>
+          </div>
         </div>
       </template>
       <div class="pubs-empty" v-else>Нет данных</div>
@@ -79,6 +111,7 @@
 
 <script>
 import {mapState} from "vuex";
+import {renderPdfFirstPage} from "@/services/pdfPreview.js";
 
 export default {
   name: 'PgPublications',
@@ -88,6 +121,8 @@ export default {
     return {
       //режим просмотра публикаций: 'mosaic' - мозаика, 'list' - список
       publicationsViewMode: 'mosaic',
+      //превью первой страницы pdf: имя файла -> data-url изображения
+      previews: {},
     }
   },
   computed: {
@@ -103,8 +138,30 @@ export default {
       let link = this.publicationLink(pub);
       if (link !== '') window.open(link, '_blank');
     },
+    //рендер превью первой страницы для всех публикаций (результат кэшируется в сервисе)
+    loadPreviews() {
+      this.publications.forEach((pub) => {
+        if (!pub.filename || this.previews[pub.filename] !== undefined) return;
+        //заглушка, чтобы не запускать рендер повторно
+        this.previews[pub.filename] = null;
+        renderPdfFirstPage(this.publicationLink(pub))
+          .then((dataUrl) => {
+            this.previews[pub.filename] = dataUrl;
+          })
+          .catch(() => {
+            //без превью останется иконка-заглушка
+          });
+      });
+    },
   },
-  watch: {},
+  watch: {
+    publications: {
+      immediate: true,
+      handler() {
+        this.loadPreviews();
+      },
+    },
+  },
   mounted() {
   },
 }
@@ -200,12 +257,19 @@ export default {
       .pub-card-cover {
         position: relative;
         width: 100%;
-        height: 90px;
+        height: 130px;
         display: flex;
         justify-content: center;
         align-items: center;
         border-radius: 5px;
         background-color: hsl(0, 0%, 92%);
+
+        .pub-card-cover-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          border-radius: 5px;
+        }
 
         .pub-card-cover-icon {
           font-size: 40px;
@@ -216,6 +280,17 @@ export default {
           position: absolute;
           top: 3px;
           left: 3px;
+        }
+      }
+
+      .pub-card-actions {
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: start;
+        gap: 3px;
+
+        .el-button + .el-button {
+          margin-left: 0;
         }
       }
 
@@ -272,12 +347,19 @@ export default {
       .pub-row-cover {
         flex: 0 0 auto;
         width: 36px;
-        height: 44px;
+        height: 48px;
         display: flex;
         justify-content: center;
         align-items: center;
         border-radius: 5px;
         background-color: hsl(0, 0%, 92%);
+        overflow: hidden;
+
+        .pub-row-cover-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
 
         .pub-row-cover-icon {
           font-size: 20px;
@@ -309,6 +391,17 @@ export default {
         font-size: 13px;
         font-weight: bold;
         color: hsl(180, 100%, 25%);
+      }
+
+      .pub-row-actions {
+        flex: 0 0 auto;
+        display: flex;
+        flex-flow: row nowrap;
+        gap: 3px;
+
+        .el-button + .el-button {
+          margin-left: 0;
+        }
       }
     }
   }
