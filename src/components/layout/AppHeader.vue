@@ -94,6 +94,7 @@ export default {
       font-size: 12px;
       font-weight: bold;
       color: hsl(60, 0%, 40%);
+      cursor: pointer;
       &:hover {
         box-shadow: 0 0 10px 3px rgba(0, 140, 186, 0.5);
       }
