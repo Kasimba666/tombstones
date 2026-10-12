@@ -349,15 +349,12 @@ export default {
     }
   }
 
+  //тип публикации — просто атрибут, не кнопка: приглушённый текст без рамки, скругления и жирного начертания
   .pub-type {
     display: inline-flex;
     align-items: center;
-    padding: 1px 5px;
-    border-radius: 5px;
-    border: 2px solid hsl(60, 0%, 60%);
     font-size: 11px;
-    font-weight: bold;
-    color: hsl(60, 0%, 40%);
+    color: hsl(0, 0%, 45%);
     white-space: nowrap;
   }
 
@@ -415,10 +412,12 @@ export default {
           color: hsl(0, 0%, 60%);
         }
 
+        //поверх обложки — только лёгкая светлая тень для читаемости, без плашки
         .pub-type {
           position: absolute;
           top: 3px;
           left: 3px;
+          text-shadow: 0 0 3px hsl(0, 0%, 100%), 0 0 3px hsl(0, 0%, 100%);
         }
       }
 
