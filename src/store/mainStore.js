@@ -357,6 +357,8 @@ export default new Vuex.Store({
         imgs: [],
         publications: [],
         filtersValues: [],
+        selectedTypes: [],
+        selectedAuthors: [],
         sortingValues: {attrName: 'name', direction: 'asc'},
         currentID: '',
         dataViewMode: 'mosaic', //режим просмотра данных: 'mosaic' - мозаика, 'list' - список, 'table' - таблица
@@ -669,6 +671,12 @@ export default new Vuex.Store({
         setCurrentID(state, v) {
             state.currentID = v;
         },
+        setSelectedTypes(state, v) {
+            state.selectedTypes = v;
+        },
+        setSelectedAuthors(state, v) {
+            state.selectedAuthors = v;
+        },
         setDataViewMode(state, v) {
             state.dataViewMode = v;
         },
@@ -778,6 +786,12 @@ export default new Vuex.Store({
                 alert('Ошибка загрузки файла публикаций');
             }
         },
+        setSelectedTypes({commit}, types) {
+            commit('setSelectedTypes', types);
+        },
+        setSelectedAuthors({commit}, authors) {
+            commit('setSelectedAuthors', authors);
+        },
         initFiltersValues({state, getters, dispatch}) {
             if (!!getters.filters && state.filtersValues.length===0) {
                 dispatch('clearFiltersValues');
@@ -807,3 +821,5 @@ export default new Vuex.Store({
     // plugins: [createPersistedState({key: 'spatialObjs', paths: ['filtersValues', 'sortingValues']})],
     namespaced: true,
 })
+
+

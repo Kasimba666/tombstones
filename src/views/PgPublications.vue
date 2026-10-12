@@ -54,13 +54,10 @@
         <div class="filter-placeholder">
           <el-select v-model="selectedAuthors"
                      multiple
-                     collapse-tags
-                     collapse-tags-tooltip
                      clearable
                      placeholder="(все)"
                      size="small"
-                     style="width: 160px"
-                     :max-collapse-tags="1"
+                     style="width: 220px"
           >
             <el-option
                 v-for="author of availableAuthors"
