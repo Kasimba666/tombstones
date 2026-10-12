@@ -25,7 +25,7 @@
     <div class="pubs-filters">
       <div class="filter-block">
         <div class="label-placeholder">
-          <label>Тип: </label>
+          <label>Тип:</label>
         </div>
         <div class="filter-placeholder">
           <el-select v-model="selectedTypes"
@@ -49,7 +49,7 @@
       </div>
       <div class="filter-block">
         <div class="label-placeholder">
-          <label>Авторы: </label>
+          <label>Авторы:</label>
         </div>
         <div class="filter-placeholder">
           <el-select v-model="selectedAuthors"
@@ -313,35 +313,37 @@ export default {
     }
   }
 
-  //фильтры в стиле ObjsFilters ("Список камней"), расположены по горизонтали с переносом
+  //фильтры в стиле ObjsFilters ("Список камней"), расположены по горизонтали с переносом;
+  //компактно: блоки по ширине контента, минимальные отступы между фильтрами
+  //и между именем фильтра и списком его значений
   .pubs-filters {
     width: 100%;
     height: auto;
-    padding: 5px 10px;
+    padding: 3px 10px;
     display: flex;
     flex-flow: row wrap;
     justify-content: start;
-    align-items: start;
+    align-items: center;
     gap: 5px;
 
     .filter-block {
-      width: 270px;
       display: flex;
-      flex-flow: row wrap;
+      flex-flow: row nowrap;
       justify-content: left;
-      gap: 5px;
-      padding: 3px;
+      align-items: center;
+      gap: 3px;
 
       .label-placeholder {
-        width: 90px;
+        width: auto;
         height: auto;
         text-align: left;
         display: flex;
         align-items: center;
+        white-space: nowrap;
       }
 
       .filter-placeholder {
-        width: 160px;
+        width: auto;
         height: auto;
       }
     }
