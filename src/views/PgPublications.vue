@@ -85,28 +85,21 @@
             />
             <el-icon class="pub-card-cover-icon" v-else><Document /></el-icon>
             <span class="pub-type">{{ pub.type }}</span>
+            <el-button class="pub-card-download"
+                       type="primary" size="small" circle
+                       tag="a"
+                       :href="publicationLink(pub)"
+                       :download="pub.filename"
+                       title="Скачать"
+                       @click.stop
+            >
+              <el-icon><Download /></el-icon>
+            </el-button>
           </div>
           <div class="pub-card-body">
             <div class="pub-card-title">{{ pub.title }}</div>
             <div class="pub-card-authors">{{ pub.authors }}</div>
             <div class="pub-card-year">{{ pub.year }}</div>
-          </div>
-          <div class="pub-card-actions">
-            <el-button size="small" type="primary" plain
-                       @click.stop="openPublication(pub)"
-            >
-              <el-icon><TopRight /></el-icon>
-              <span>Открыть</span>
-            </el-button>
-            <el-button size="small" type="primary" plain
-                       tag="a"
-                       :href="publicationLink(pub)"
-                       :download="pub.filename"
-                       @click.stop
-            >
-              <el-icon><Download /></el-icon>
-              <span>Скачать</span>
-            </el-button>
           </div>
         </div>
       </template>
@@ -134,23 +127,16 @@
           </div>
           <span class="pub-type">{{ pub.type }}</span>
           <div class="pub-row-year">{{ pub.year }}</div>
-          <div class="pub-row-actions">
-            <el-button size="small" type="primary" plain
-                       @click.stop="openPublication(pub)"
-            >
-              <el-icon><TopRight /></el-icon>
-              <span>Открыть</span>
-            </el-button>
-            <el-button size="small" type="primary" plain
-                       tag="a"
-                       :href="publicationLink(pub)"
-                       :download="pub.filename"
-                       @click.stop
-            >
-              <el-icon><Download /></el-icon>
-              <span>Скачать</span>
-            </el-button>
-          </div>
+          <el-button class="pub-row-download"
+                     type="primary" size="small" circle
+                     tag="a"
+                     :href="publicationLink(pub)"
+                     :download="pub.filename"
+                     title="Скачать"
+                     @click.stop
+          >
+            <el-icon><Download /></el-icon>
+          </el-button>
         </div>
       </template>
       <div class="pubs-empty" v-else>Нет публикаций по выбранным фильтрам</div>
@@ -349,12 +335,16 @@ export default {
     }
   }
 
-  //тип публикации — просто атрибут, не кнопка: приглушённый текст без рамки, скругления и жирного начертания
+  //тип публикации — атрибут: мягкая плашка-метка без рамки и тени, чтобы не выглядела кнопкой
   .pub-type {
     display: inline-flex;
     align-items: center;
-    font-size: 11px;
-    color: hsl(0, 0%, 45%);
+    padding: 0 4px;
+    border-radius: 3px;
+    background-color: hsl(180, 100%, 25%, 0.1);
+    font-size: 10px;
+    font-weight: bold;
+    color: hsl(180, 100%, 25%);
     white-space: nowrap;
   }
 
@@ -412,23 +402,21 @@ export default {
           color: hsl(0, 0%, 60%);
         }
 
-        //поверх обложки — только лёгкая светлая тень для читаемости, без плашки
+        //поверх обложки — более непрозрачная подложка, чтобы метка читалась поверх картинки
         .pub-type {
           position: absolute;
           top: 3px;
           left: 3px;
-          text-shadow: 0 0 3px hsl(0, 0%, 100%), 0 0 3px hsl(0, 0%, 100%);
+          background-color: hsl(0, 0%, 100%, 0.85);
         }
-      }
 
-      .pub-card-actions {
-        display: flex;
-        flex-flow: row wrap;
-        justify-content: start;
-        gap: 3px;
-
-        .el-button + .el-button {
-          margin-left: 0;
+        //иконка скачивания в правом верхнем углу обложки — заметная заливка primary + тень
+        .pub-card-download {
+          position: absolute;
+          top: 3px;
+          right: 3px;
+          z-index: 1;
+          box-shadow: 0 1px 3px hsl(0, 0%, 0%, 0.3);
         }
       }
 
@@ -531,15 +519,8 @@ export default {
         color: hsl(180, 100%, 25%);
       }
 
-      .pub-row-actions {
+      .pub-row-download {
         flex: 0 0 auto;
-        display: flex;
-        flex-flow: row nowrap;
-        gap: 3px;
-
-        .el-button + .el-button {
-          margin-left: 0;
-        }
       }
     }
   }
