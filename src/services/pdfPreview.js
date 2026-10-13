@@ -1,29 +1,15 @@
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import PdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker';
 
 //библиотека pdfjs подгружается лениво - только при первом обращении к превью
 let pdfjsLibModule = null;
 
-//часть хостингов отдаёт файлы .mjs с Content-Type application/octet-stream,
-//а браузеры строго проверяют MIME у module-воркеров и запрещают их запуск,
-//поэтому текст воркера загружается fetch'ем и воркер создаётся из blob-url
-//(pdf.worker.min.mjs — ES-модуль с export в конце, значит нужен module-воркер)
-function loadWorkerFromBlob() {
-    return fetch(pdfWorkerUrl)
-        .then((response) => {
-            if (!response.ok) throw new Error('Не удалось загрузить pdf-воркер');
-            return response.text();
-        })
-        .then((workerText) => {
-            let blobUrl = URL.createObjectURL(new Blob([workerText], {type: 'text/javascript'}));
-            return new Worker(blobUrl, {type: 'module'});
-        });
-}
-
 function loadPdfjsLib() {
     if (!pdfjsLibModule) {
-        pdfjsLibModule = Promise.all([import('pdfjs-dist'), loadWorkerFromBlob()])
-            .then(([pdfjsLib, worker]) => {
-                pdfjsLib.GlobalWorkerOptions.workerPort = worker;
+        pdfjsLibModule = import('pdfjs-dist')
+            .then((pdfjsLib) => {
+                //воркер бандлится vite (?worker) в отдельный js-чанк: он раздаётся
+                //с корректным MIME на любом хостинге и является настоящим Worker
+                pdfjsLib.GlobalWorkerOptions.workerPort = new PdfjsWorker();
                 return pdfjsLib;
             });
     }

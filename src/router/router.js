@@ -1,6 +1,7 @@
 import {createRouter, createWebHistory} from 'vue-router';
 import PgAbout from '@/views/PgAbout.vue';
 import PgPublications from '@/views/PgPublications.vue';
+import PgNotFound from '@/views/PgNotFound.vue';
 import ObjsDetails from '@/components/spatialObjects/ObjsDetails.vue';
 import ObjsFiltersAndList from '@/components/spatialObjects/ObjsFiltersAndList.vue';
 
@@ -28,6 +29,17 @@ const routes = [
         name: 'PgPublications',
         path: '/publications',
         component: PgPublications,
+    },
+    {
+        //открытие папки с pdf в браузере (без имени файла) — ведём на страницу публикаций
+        path: '/assets/publications',
+        redirect: {name: 'PgPublications'},
+    },
+    {
+        //catch-all: любая несуществующая страница вместо пустого экрана и warn в консоли
+        name: 'PgNotFound',
+        path: '/:pathMatch(.*)*',
+        component: PgNotFound,
     },
 
 ]

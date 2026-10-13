@@ -206,7 +206,11 @@ export default {
     //ссылка на pdf-файл публикации из public/assets/publications
     publicationLink(pub) {
       if (!pub.filename) return '';
-      return '/assets/publications/' + encodeURIComponent(pub.filename);
+      //именно encodeURI, а не encodeURIComponent: vite ищет public-файлы через decodeURI,
+      //которое не декодирует зарезервированные символы (%2C, %2B и т.п.) — для файла с запятой
+      //в имени (например «Д_Г_Мухаметшин,_Ф_С_...») такой url не находится,
+      //и вместо pdf отдаётся index.html: нет превью и перехода по ссылке
+      return '/assets/publications/' + encodeURI(pub.filename);
     },
     openPublication(pub) {
       let link = this.publicationLink(pub);
@@ -367,7 +371,9 @@ export default {
     .pub-card {
       display: flex;
       flex-flow: column nowrap;
-      justify-content: space-between;
+      //содержимое (включая название) к верху: в ряду карточки растягиваются по высоте самой длинной,
+      //и при space-between текст прилипал бы к низу
+      justify-content: flex-start;
       gap: 5px;
       padding: 5px;
       border-radius: 5px;
@@ -452,6 +458,11 @@ export default {
     display: flex;
     flex-flow: column nowrap;
     gap: 3px;
+
+    //в списке метка типа крупнее, чем в мозаике
+    .pub-type {
+      font-size: 12px;
+    }
 
     .pub-row {
       display: flex;
