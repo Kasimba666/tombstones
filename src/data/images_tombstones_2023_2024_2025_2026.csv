@@ -1015,8 +1015,8 @@ faces;Развёртки;faces;261;2025_08_14_Bolgar_Angar_Blizhniy_2_front_dem_
 faces;Развёртки;faces;261;2025_08_14_Bolgar_Angar_Blizhniy_2_front_ortho_id261.jpg;Вид спереди (ортофото);2
 faces;Развёртки;faces;262;2025_08_14_Bolgar_Angar_Blizhniy_3_front_dem_id262.jpg;Вид спереди (карта высот);1
 faces;Развёртки;faces;262;2025_08_14_Bolgar_Angar_Blizhniy_3_front_ortho_id262.jpg;Вид спереди (ортофото);2
-faces;Развёртки;faces;;2025_08_14_Bolgar_Angar_Blizhniy_4_front_dem.jpg;Вид спереди (карта высот);
-faces;Развёртки;faces;;2025_08_14_Bolgar_Angar_Blizhniy_4_front_ortho.jpg;Вид спереди (ортофото);
+faces;Развёртки;faces;;2025_08_14_Bolgar_Angar_Blizhniy_4_front_dem.jpg;Вид спереди (карта высот);1
+faces;Развёртки;faces;;2025_08_14_Bolgar_Angar_Blizhniy_4_front_ortho.jpg;Вид спереди (ортофото);2
 faces;Развёртки;faces;263;2025_08_14_Bolgar_Angar_Blizhniy_5_front_dem_id263.jpg;Вид спереди (карта высот);1
 faces;Развёртки;faces;263;2025_08_14_Bolgar_Angar_Blizhniy_5_front_ortho_id263.jpg;Вид спереди (ортофото);2
 faces;Развёртки;faces;256;2025_08_14_Bolgar_Angar_Leviy_1_front_dem_id256.jpg;Вид спереди (карта высот);1
@@ -1077,6 +1077,7 @@ faces;Развёртки;faces;228;2025_08_14_Bolgar_Severny_Mavzoley_9_back_dem
 faces;Развёртки;faces;228;2025_08_14_Bolgar_Severny_Mavzoley_9_back_ortho_id228.jpg;Вид сзади (ортофото);2
 faces;Развёртки;faces;228;2025_08_14_Bolgar_Severny_Mavzoley_9_front_dem_id228.jpg;Вид спереди (карта высот);3
 faces;Развёртки;faces;228;2025_08_14_Bolgar_Severny_Mavzoley_9_front_ortho_id228.jpg;Вид спереди (ортофото);4
+faces;Развёртки;faces;228;Bolgar_Severny_Mavzoley_9_estamp.jpg;Эстампаж;5
 faces;Развёртки;faces;229;2025_08_14_Bolgar_Severny_Mavzoley_10_front_dem_id229.jpg;Вид спереди (карта высот);1
 faces;Развёртки;faces;229;2025_08_14_Bolgar_Severny_Mavzoley_10_front_ortho_id229.jpg;Вид спереди (ортофото);2
 faces;Развёртки;faces;230;2025_08_14_Bolgar_Severny_Mavzoley_11_back_dem_id230.jpg;Вид сзади (карта высот);1
@@ -1093,6 +1094,7 @@ faces;Развёртки;faces;232;2025_08_14_Bolgar_Severny_Mavzoley_13_front_d
 faces;Развёртки;faces;232;2025_08_14_Bolgar_Severny_Mavzoley_13_front_ortho_id232.jpg;Вид спереди (ортофото);2
 faces;Развёртки;faces;233;2025_08_14_Bolgar_Severny_Mavzoley_14_front_dem_id233.jpg;Вид спереди (карта высот);1
 faces;Развёртки;faces;233;2025_08_14_Bolgar_Severny_Mavzoley_14_front_ortho_id233.jpg;Вид спереди (ортофото);2
+faces;Развёртки;faces;233;Bolgar_Severny_Mavzoley_14_estamp.jpg;Эстампаж;3
 faces;Развёртки;faces;234;2025_08_14_Bolgar_Severny_Mavzoley_15_front_dem_id234.jpg;Вид спереди (карта высот);1
 faces;Развёртки;faces;234;2025_08_14_Bolgar_Severny_Mavzoley_15_front_ortho_id234.jpg;Вид спереди (ортофото);2
 faces;Развёртки;faces;235;2025_08_14_Bolgar_Severny_Mavzoley_16_front_dem_id235.jpg;Вид спереди (карта высот);1
@@ -1135,6 +1137,7 @@ faces;Развёртки;faces;247;2025_08_14_Bolgar_Severny_Mavzoley_28_front_d
 faces;Развёртки;faces;247;2025_08_14_Bolgar_Severny_Mavzoley_28_front_ortho_id247.jpg;Вид спереди (ортофото);2
 faces;Развёртки;faces;264;2025_08_15_Bolgar_Myzei_1_front_dem_id264.jpg;Вид спереди (карта высот);1
 faces;Развёртки;faces;264;2025_08_15_Bolgar_Myzei_1_front_ortho_id264.jpg;Вид спереди (ортофото);2
+faces;Развёртки;faces;264;Bolgar_Myzei_1_estamp.jpg;Эстампаж;3
 faces;Развёртки;faces;265;2025_08_15_Bolgar_Myzei_2_front_dem_id265.jpg;Вид спереди (карта высот);1
 faces;Развёртки;faces;265;2025_08_15_Bolgar_Myzei_2_front_ortho_id265.jpg;Вид спереди (ортофото);2
 faces;Развёртки;faces;204;2025_10_07_Bakrche_1_back_dem_id204.jpg;Вид сзади (карта высот);1
